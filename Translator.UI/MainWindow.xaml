@@ -1,0 +1,103 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Translator.UI" x:Name="window" x:Class="Translator.UI.MainWindow"
+        mc:Ignorable="d"
+        Title="Translator" Height="350" Width="525">
+    <Window.Resources>
+        <local:LogLevelIntConverter x:Key="LogLevelIntConverter"/>
+        <local:LogLevelBrushConverter x:Key="LogLeverBrushConverter"/>
+        <ItemsPanelTemplate x:Key="ItemsPanelTemplate">
+            <VirtualizingStackPanel HorizontalAlignment="Stretch" IsItemsHost="True"/>
+        </ItemsPanelTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TabControl>
+            <TabItem Header="Code">
+                <TextBox x:Name="sourceTextBox" AcceptsReturn="True"/>
+            </TabItem>
+            <TabItem Header="Token table">
+                <DataGrid Loaded="SetMinWidth" IsReadOnly="True" ItemsSource="{Binding ViewModel.AllTokens, ElementName=window}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
+                        <DataGridTextColumn Header="Line" Binding="{Binding Line}"/>
+                        <DataGridTextColumn Header="Substring" Binding="{Binding Escaped}"/>
+                        <DataGridTextColumn Header="Index" Binding="{Binding Index}"/>
+                        <DataGridTextColumn Header="Token index" Binding="{Binding TokenIndex}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Id table">
+                <DataGrid Loaded="SetMinWidth" IsReadOnly="True" ItemsSource="{Binding ViewModel.Identifiers, ElementName=window}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="Is Label" Binding="{Binding IsLabel}"/>
+                        <DataGridTextColumn Header="Index" Binding="{Binding Index}"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Constant table">
+                <DataGrid Loaded="SetMinWidth" IsReadOnly="True" ItemsSource="{Binding ViewModel.Constants, ElementName=window}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Index" Binding="{Binding Index}"/>
+                        <DataGridTextColumn Header="Substring" Binding="{Binding Substring}"/>
+                        <DataGridTextColumn Header="Value" Binding="{Binding Value}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Label table">
+                <DataGrid Loaded="SetMinWidth" IsReadOnly="True" ItemsSource="{Binding ViewModel.Labels, ElementName=window}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Index" Binding="{Binding Index}"/>
+                        <DataGridTextColumn Header="Substring" Binding="{Binding Escaped}"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Log">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ListBox x:Name="LogTextBox" HorizontalContentAlignment="Stretch"
+                             ItemsSource="{Binding ViewModel.LogMessagesEnumerable, ElementName=window}"
+                             ItemsPanel="{DynamicResource ItemsPanelTemplate}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch"
+                                            Background="{Binding Type, Converter={StaticResource LogLeverBrushConverter}}">
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <!--<MultiBinding StringFormat="{}{0} {1}" FallbackValue="">
+                                            <Binding Path="PositionMessage" />
+                                            <Binding Path="Message" />
+                                        </MultiBinding>-->
+                                            <Binding Path="Message" />
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{Binding ElementName=window, Path=ViewModel.Level}"/>
+                        <Slider x:Name="slider" Grid.Column="1" VerticalAlignment="Center" Value="{Binding ViewModel.Level, Converter={StaticResource LogLevelIntConverter}, ElementName=window, Mode=TwoWay}" SmallChange="0.5" Maximum="5" Interval="1" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Button x:Name="analyzeButton" Click="AnalyzeButton_OnClick" Content="Analyze" HorizontalAlignment="Center" Grid.Row="1" VerticalAlignment="Center" Width="75"/>
+    </Grid>
+</Window>
+

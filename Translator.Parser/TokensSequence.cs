@@ -48,7 +48,7 @@ namespace Parser
             var hasNext = _toCompare.MoveNext();
             if (!hasNext)
             {
-                Log(LogEventLevel.Information, "Sequence doesn't contain tokens anymore", null, false);
+                Log(TryMode ? LogEventLevel.Information : LogEventLevel.Error, "Sequence doesn't contain tokens anymore", _toCompare.Current);
                 _success = false;
                 return false;
             }

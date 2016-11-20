@@ -33,7 +33,7 @@ namespace Translator.UI
         public MainWindow()
         {
             _lexer = new Lexer.Lexer(new LogObserver(_viewModel));
-            _parser = new RecursiveDescentParser(new LogObserver(_viewModel));
+            _parser = new StateMachineParser(new LogObserver(_viewModel));
             InitializeComponent();
         }
 
@@ -57,6 +57,7 @@ namespace Translator.UI
                 _lexer.Validate(ViewModel.AllTokens.ToList());
 
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
+
                 valid = valid && _parser.CheckSyntax(_lexer.Parsed);
                 if (valid)
                 {

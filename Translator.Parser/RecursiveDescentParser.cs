@@ -61,7 +61,12 @@ namespace Parser
             Logger.Information("List of operators");
             var s = TokensSequence.Init(ref arg)
                 .Check(Operator)
-                .Iterative(seq => seq.NewLine(), seq => seq.Check(Operator));
+                .Iterative(seq => seq.NewLine(), seq => seq.Check(Operator), true);
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in list of operators on '{arg.Current}'");
+            }
             arg = s.ToCompare;
             return s.Result;
         }
@@ -69,7 +74,7 @@ namespace Parser
         private bool Operator(ref IEnumerator<Token> arg)
         {
             Logger.Information("Operator");
-            return TokensSequence.AnyOf(ref arg,
+            return TokensSequence.AnyOf(ref arg, true,
                 seq => seq
                     .LabelDef()
                     .NewLine()
@@ -81,7 +86,7 @@ namespace Parser
         private bool UnlabeledOperator(ref IEnumerator<Token> enumerator)
         {
             Logger.Information("Unlabeled operator");
-            return TokensSequence.AnyOf(ref enumerator,
+            return TokensSequence.AnyOf(ref enumerator, true,
                 seq => seq
                     .Id()
                     .String("=")
@@ -121,6 +126,11 @@ namespace Parser
             var s = TokensSequence.Init(ref enumerator)
                 .Check(LogicalTerm)
                 .Iterative(seq => seq.String("or"), seq => seq.Check(LogicalTerm));
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in logical expression on '{enumerator.Current}'");
+            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -131,6 +141,11 @@ namespace Parser
             var s = TokensSequence.Init(ref enumerator)
                 .Check(LogicalMultiplier)
                 .Iterative(seq => seq.String("and"), seq => seq.Check(LogicalMultiplier));
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in logical term on '{enumerator.Current}'");
+            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -138,7 +153,7 @@ namespace Parser
         private bool LogicalMultiplier(ref IEnumerator<Token> enumerator)
         {
             Logger.Information("Logical multiplier");
-            return TokensSequence.AnyOf(ref enumerator,
+            return TokensSequence.AnyOf(ref enumerator, true,
                 seq => seq.Check(Expression).AnyFrom(
                     innseq => innseq.String(">").Check(Expression),
                     innseq => innseq.String(">=").Check(Expression),
@@ -159,6 +174,11 @@ namespace Parser
                 .Check(Term)
                 .Iterative(seq => seq.String("+"), seq => seq.Check(Term))
                 .Iterative(seq => seq.String("-"), seq => seq.Check(Term));
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in expression on '{enumerator.Current}'");
+            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -170,6 +190,11 @@ namespace Parser
                 .Check(Multiplier)
                 .Iterative(seq => seq.String("/"), seq => seq.Check(Multiplier))
                 .Iterative(seq => seq.String("*"), seq => seq.Check(Multiplier));
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in term on '{enumerator.Current}'");
+            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -177,7 +202,7 @@ namespace Parser
         private bool Multiplier(ref IEnumerator<Token> enumerator)
         {
             Logger.Information("Multiplier");
-            return TokensSequence.AnyOf(ref enumerator, seq => seq.Id(),
+            return TokensSequence.AnyOf(ref enumerator, true, seq => seq.Id(),
                 seq => seq.Const(),
                 seq => seq.String("(").Check(Expression).String(")"));
         }
@@ -188,6 +213,11 @@ namespace Parser
             var s = TokensSequence.Init(ref enumerator)
                 .Id()
                 .Iterative(seq => seq.String(","), seq => seq.Id());
+
+            if (!s.Result)
+            {
+                TokensSequence.Logger.Error($"Error in id list on '{enumerator.Current}'");
+            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -199,6 +229,11 @@ namespace Parser
                 .Check(Def)
                 .Iterative(subseq => subseq.String(","), subseq => subseq.Check(Def)
                 );
+
+            if (!seq.Result)
+            {
+                TokensSequence.Logger.Error($"Error in definition list on '{arg.Current}'");
+            }
             arg = seq.ToCompare;
             return seq.Result;
         }

@@ -99,14 +99,14 @@ namespace Parser
             return this;
         }
 
-        public TokensSequence Iterative(Func<TokensSequence, TokensSequence> func, Func<TokensSequence, TokensSequence> restFunc)
+        public TokensSequence Iterative(Func<TokensSequence, TokensSequence> func, Func<TokensSequence, TokensSequence> restFunc, bool tryMode = true)
         {
             bool funcSuccess;
             do
             {
                 var clone = _toCompare.Clone();
                 var tokensSequence = Init(ref clone);
-                tokensSequence.TryMode = true;
+                tokensSequence.TryMode = tryMode;
                 var seq = func(tokensSequence);
                 funcSuccess = seq.Result;
                 if (seq.Result)
@@ -128,14 +128,14 @@ namespace Parser
             return this;
         }
 
-        public static bool AnyOf(ref IEnumerator<Token> enumerator, params Func<TokensSequence, TokensSequence>[] seqs)
+        public static bool AnyOf(ref IEnumerator<Token> enumerator, bool tryMode = true, params Func<TokensSequence, TokensSequence>[] seqs)
         {
             IEnumerator<Token> copy = enumerator;
             var any = seqs.Any(seq =>
             {
                 var clone = copy.Clone();
                 var tokensSequence = Init(ref clone);
-                tokensSequence.TryMode = true;
+                tokensSequence.TryMode = tryMode;
                 var result = seq(tokensSequence);
                 if (result?.Result == true)
                 {

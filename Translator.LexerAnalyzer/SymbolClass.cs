@@ -64,7 +64,8 @@ namespace Translator.Lexer
         Exclamation = 1 << 8,
         Colon = 1 << 9,
         Space = 1 << 10,
-        Comma = 1 << 11
+        Comma = 1 << 11,
+        Hypen = 1 << 12
     }
 
     public struct Symbol : IEquatable<Symbol>
@@ -81,6 +82,7 @@ namespace Translator.Lexer
         public static readonly Symbol Colon = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Colon} };
         public static readonly Symbol Space = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Space} };
         public static readonly Symbol Comma = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Comma} };
+        public static readonly Symbol Hypen = new Symbol() { Class = new SymbolClass() { Class = Translator.Lexer.Class.Hypen } };
 
         public Symbol(char? symbol = null, IList<SymbolClass> classes = null)
         {

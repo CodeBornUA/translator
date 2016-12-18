@@ -131,6 +131,7 @@ namespace Translator.Lexer
                 .Permit(Symbol.Exclamation, LexerState.Not)
                 .Permit(Symbol.Splitter, LexerState.Splitter)
                 .Permit(Symbol.Comma, LexerState.Comma)
+                .Permit(Symbol.Hypen, LexerState.Hypen)
                 .Ignore(Symbol.Space)
                 .OnUnhandled(Error);
 

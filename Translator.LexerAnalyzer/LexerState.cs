@@ -19,6 +19,7 @@
         Splitter,
         Comma,
         LabelDefinition,
-        LabelWithSplitter
+        LabelWithSplitter,
+        Hypen
     }
 }

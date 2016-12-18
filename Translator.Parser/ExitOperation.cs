@@ -31,7 +31,7 @@ namespace Parser
 
         public override void Do()
         {
-            _logger.Error(_message, Machine.Current);
+            _logger.Error(_message + ", but found {0} at line {1}", Machine.Current, Machine.Current.Line);
             throw new Exception(_message);
         }
     }
@@ -49,6 +49,28 @@ namespace Parser
         {
             var nextState = Machine.StateStack.Pop();
             Machine.State = nextState;
+
+            if (_fireAgain)
+            {
+                Machine.Fire(Machine.Current);
+            }
+        }
+    }
+
+    public class TransitionExitOperation : ExitOperation
+    {
+        private bool _fireAgain;
+        private int _newState;
+
+        public TransitionExitOperation(StackStateMachine machine, int newState, bool fireAgain = false) : base(machine)
+        {
+            _newState = newState;
+            _fireAgain = fireAgain;
+        }
+
+        public override void Do()
+        {
+            Machine.State = _newState;
 
             if (_fireAgain)
             {

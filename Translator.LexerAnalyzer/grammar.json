@@ -47,6 +47,7 @@
     "Exclamation": "!",
     "Colon": ":",
     "Space": " ",
-    "Comma": ","
+    "Comma": ",",
+    "Hypen": "-"
   }
 }

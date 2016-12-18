@@ -65,39 +65,49 @@ namespace Parser
 
         private void FillProgram()
         {
-            _transitions.Add(StandartTransition(1, 
-                "Program must start with program keyword", 
+            _transitions.Add(StandartTransition(1,
+                "Program must start with program keyword",
                 (x => x.Substring == "program", 2)));
-            _transitions.Add(StandartTransition(2, 
-                "There should be an identifier after program keyword ", 
+            _transitions.Add(StandartTransition(2,
+                "There should be an identifier after program keyword ",
                 (x => x is Identifier, 3)));
-            _transitions.Add(StandartTransition(3, 
-                "Program and its name should be proceeded by the line feed", 
+            _transitions.Add(StandartTransition(3,
+                "Program and its name should be proceeded by the line feed",
                 (x => x.Substring == "\r\n", 4)));
-            _transitions.Add(StandartTransition(4, 
-                "Expected var here", 
+            _transitions.Add(StandartTransition(4,
+                "Expected var here",
                 (x => x.Substring == "var", 5)));
-            _transitions.Add(StandartTransition(5, 
+            _transitions.Add(StandartTransition(5,
                 "Only float type is supported now",
                 (x => x.Substring == "float", 6)));
-            _transitions.Add(StandartTransition(6, 
-                "Identifier is expected after type of variable", 
+            _transitions.Add(StandartTransition(6,
+                "Identifier is expected after type of variable",
                 (x => x is Identifier, 7)));
-            _transitions.Add(StandartTransition(7, 
+            _transitions.Add(StandartTransition(7,
                 "Variable definitions should be split with comma"
                 , (x => x.Substring == ",", 5)));
-            _transitions.Add(StandartTransition(7, 
+            _transitions.Add(StandartTransition(7,
                 "End of line expected here"
                 , (x => x.Substring == "\r\n", 8)));
 
             operatorFirstState = FillOperator();
 
-            _transitions.Add(StandartTransition(8, 
+            _transitions.Add(StandartTransition(8,
                 "'begin' keyword is expected here", (x => x.Substring == "begin", 9)));
-            _transitions.Add(SubMachineTransition(9, operatorFirstState, x => x.Substring == "\r\n", 10));
+            _transitions.Add(StandartTransition(9, "New line is expected here", (x => x.Substring == "\r\n", 10)));
 
-            _transitions.Add(SubMachineTransition(10, operatorFirstState, x => x.Substring == "\r\n", 10));
-            _transitions.Add(StandartTransition(10, "'end' keyword is expected here", (x => x.Substring == "end", null)));
+            _transitions.Add(new StateTransition()
+            {
+                PreviousState = 10,
+                OnUnequality = new SubMachineExitOperation(101, 9, _machine, true),
+                Transitions = new List<MachineTransition>()
+                {
+                    new MachineTransition()
+                    {
+                        EnterPredicate = x => x.Substring == "end"
+                    }
+                }
+            });
         }
 
         private int FillOperator()
@@ -107,7 +117,7 @@ namespace Parser
             _transitions.Add(new StateTransition()
             {
                 PreviousState = intialState,
-                OnUnequality = new StackExitOperation(_machine),
+                OnUnequality = new ErrorExitOperation(_logger, "Operator is expected here", _machine),
                 Transitions = new List<MachineTransition>()
                 {
                      new MachineTransition(){EnterPredicate = x => x is Identifier,NewState = 102},
@@ -119,25 +129,25 @@ namespace Parser
                 }
             });
 
-            _transitions.Add(SubMachineTransition(113, 101, x => x.Substring == "\r\n", 101));
+            _transitions.Add(StandartTransition(113, "New line is expected here", (x => x.Substring == "\r\n", 118)));
 
             expFirstState = FillExpression();
-            _transitions.Add(SubMachineTransition(102, expFirstState, x => x.Substring == "=", 103));
+            _transitions.Add(SubMachineTransition(102, expFirstState, x => x.Substring == "=", 103, "'=' is expected here"));
             _transitions.Add(ExitOnUnequality(103));
             _transitions.Add(StandartTransition(104, "'(' expected here", (x => x.Substring == "(", 105)));
             _transitions.Add(StandartTransition(105, "Identifier is expected here", (x => x is Identifier, 106)));
             _transitions.Add(StandartTransition(106, "Comma is expected here", (x => x.Substring == ",", 105)));
             _transitions.Add(StandartTransition(106, "')' expected here", (x => x.Substring == ")", null)));
             _transitions.Add(StandartTransition(107, "Identifier expected here", (x => x is Identifier, 108)));
-            _transitions.Add(SubMachineTransition(108, expFirstState, x => x.Substring == "=", 109));
-            _transitions.Add(SubMachineTransition(109, expFirstState, x => x.Substring == "to", 110));
-            _transitions.Add(SubMachineTransition(110, 101, x => x.Substring == "\r\n", 111));
-            _transitions.Add(StandartTransition(111, "New line expected here", (x => x.Substring == "\r\n", 112)));
+            _transitions.Add(SubMachineTransition(108, expFirstState, x => x.Substring == "=", 109, "'=' is not found"));
+            _transitions.Add(SubMachineTransition(109, expFirstState, x => x.Substring == "to", 110, "'to' is not found"));
+            _transitions.Add(SubMachineTransition(110, 101, x => x.Substring == "\r\n", 111, "New line is expected here"));
+            _transitions.Add(StandartTransition(111, "New line is expected here", (x => x.Substring == "\r\n", 112)));
 
             _transitions.Add(new StateTransition()
             {
                 PreviousState = 112,
-                OnUnequality = new SubMachineExitOperation(101, 111, _machine),
+                OnUnequality = new SubMachineExitOperation(101, 111, _machine, true),
                 Transitions = new List<MachineTransition>()
                 {
                     new MachineTransition()
@@ -159,6 +169,21 @@ namespace Parser
             _transitions.Add(StandartTransition(115, "'then' expected here", (x => x.Substring == "then", 116)));
             _transitions.Add(StandartTransition(116, "'goto' expected here", (x => x.Substring == "goto", 117)));
             _transitions.Add(StandartTransition(117, "Label usage is expected here", (x => x is Identifier && ((Identifier)x).IsLabel, null)));
+
+            _transitions.Add(new StateTransition()
+            {
+                PreviousState = 118,
+                OnUnequality = new StackExitOperation(_machine),
+                Transitions = new List<MachineTransition>()
+                {
+                     new MachineTransition(){EnterPredicate = x => x is Identifier,NewState = 102},
+                     new MachineTransition(){EnterPredicate = x => x.Substring == "readl",NewState = 104},
+                     new MachineTransition(){EnterPredicate = x => x.Substring == "writel",NewState = 104},
+                     new MachineTransition(){EnterPredicate = x => x.Substring == "do",NewState = 107},
+                     new MachineTransition(){EnterPredicate = x => x.Substring == "if",NewState = 114}
+                     //Everything but label
+                }
+            });
 
             return intialState;
         }
@@ -189,7 +214,7 @@ namespace Parser
 
             _transitions.Add(new StateTransition()
             {
-                OnUnequality = new ErrorExitOperation(_logger, "Unrecognized relation operator {0}", _machine),
+                OnUnequality = new ErrorExitOperation(_logger, "Relation operator is expected", _machine),
                 PreviousState = 302,
                 Transitions = new List<MachineTransition>()
                 {
@@ -238,15 +263,31 @@ namespace Parser
                 }
             });
 
+            _transitions.Add(StandartTransition(304, "']' is expected here", (x => x.Substring == "]", 303)));
+
             return initial;
         }
 
         private int FillExpression()
         {
-            var initial = 201;
+            var initial = 200;
+
+            _transitions.Add(new StateTransition()
+            {
+                PreviousState = 200,
+                Transitions = new List<MachineTransition>()
+                {
+                    new MachineTransition()
+                    {
+                        EnterPredicate = x => x.Substring == "-",
+                        NewState = 201
+                    }
+                },
+                OnUnequality = new TransitionExitOperation(_machine, 201, true)
+            });
 
             _transitions.Add(StandartTransition(201, "Constant of identifier is expected here", (x => x is Identifier, 202), (x => x is Constant<float>, 202)));
-            _transitions.Add(SubMachineTransition(201, 201, x => x.Substring == "(", 203));
+            _transitions.Add(SubMachineTransition(201, initial, x => x.Substring == "(", 203));
 
             _transitions.Add(new StateTransition()
             {
@@ -308,7 +349,7 @@ namespace Parser
                         EnterPredicate = x => false
                     }
                 },
-                OnUnequality = new StackExitOperation(_machine)
+                OnUnequality = new StackExitOperation(_machine, true)
             };
             return t;
         }

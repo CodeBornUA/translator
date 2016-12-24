@@ -1,0 +1,20 @@
+﻿<Window x:Class="Translator.UI.PrecedenceTable"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Translator.UI"
+        mc:Ignorable="d"
+        Title="PrecedenceTable" Height="600" Width="800">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <DataGrid Name="Grid" AutoGenerateColumns="False">
+            <DataGrid.RowHeaderTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor,  
+                                  AncestorType={x:Type DataGridRow}},  
+                                  Path=Item.Header}"/>
+                </DataTemplate>
+            </DataGrid.RowHeaderTemplate>
+        </DataGrid>
+    </ScrollViewer>
+</Window>

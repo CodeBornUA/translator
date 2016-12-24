@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parser", "Translator.Parser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.Core", "Translator.Core\Translator.Core.csproj", "{ED0BBE41-0105-41A6-8690-5EA533BD2877}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParserTests", "ParserTests\ParserTests.csproj", "{18578A3C-9597-42DE-B67F-CF070A327D00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{ED0BBE41-0105-41A6-8690-5EA533BD2877}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED0BBE41-0105-41A6-8690-5EA533BD2877}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED0BBE41-0105-41A6-8690-5EA533BD2877}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18578A3C-9597-42DE-B67F-CF070A327D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18578A3C-9597-42DE-B67F-CF070A327D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18578A3C-9597-42DE-B67F-CF070A327D00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18578A3C-9597-42DE-B67F-CF070A327D00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

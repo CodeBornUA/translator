@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -6,7 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using Parser;
+using Parser.Precedence;
 using Serilog.Events;
+using Translator.Lexer;
 
 namespace Translator.UI
 {
@@ -33,7 +36,7 @@ namespace Translator.UI
         public MainWindow()
         {
             _lexer = new Lexer.Lexer(new LogObserver(_viewModel));
-            _parser = new StateMachineParser(new LogObserver(_viewModel));
+            _parser = new PrecedenceParser(new LogObserver(_viewModel));
             InitializeComponent();
         }
 
@@ -54,18 +57,22 @@ namespace Translator.UI
                 ViewModel.Identifiers = _lexer.Identifiers;
                 ViewModel.Constants = _lexer.Constants;
                 ViewModel.Labels = _lexer.Labels;
-                _lexer.Validate(ViewModel.AllTokens.ToList());
+                //_lexer.Validate(ViewModel.AllTokens.ToList());
 
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
 
-                valid = valid && _parser.CheckSyntax(_lexer.Parsed);
-                if (valid)
-                {
-                    MessageBox.Show("Program is valid");
-                    return;
-                }
+                //valid = valid && _parser.CheckSyntax(_lexer.Parsed);
+                //if (valid)
+                //{
+                //    MessageBox.Show("Program is valid");
+                //    return;
+                //}
                 
-                throw new Exception();
+                //throw new Exception();
+
+                var table = new PrecedenceTable();
+                table.FillTable(PrecedenceParser.Grammar, (_parser as PrecedenceParser).Precedence);
+                table.ShowDialog();
             }
             catch (Exception)
             {

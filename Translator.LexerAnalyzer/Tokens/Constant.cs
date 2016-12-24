@@ -6,7 +6,7 @@ namespace Translator.Lexer
 {
     public sealed class Constant<T> : Token, IEquatable<Constant<T>> where T : struct, IConvertible
     {
-        public override TokenType Type => TokenType.Constant;
+        public override TokenType Type { get; set; } = TokenType.Constant;
 
         public T Value { get; }
 

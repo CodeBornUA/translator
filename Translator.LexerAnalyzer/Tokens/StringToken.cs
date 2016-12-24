@@ -8,7 +8,7 @@ namespace Translator.Lexer
 
         private readonly StringBuilder _value = new StringBuilder();
 
-        public override TokenType Type => TokenType.Keyword;
+        public override TokenType Type { get; set; } = TokenType.Keyword;
 
         public void Append(char symbol)
         {

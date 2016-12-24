@@ -7,9 +7,9 @@ namespace Translator.Lexer
         public int? TokenIndex { get; protected internal set; }
         public int? Index { get; protected internal set; }
 
-        public abstract TokenType Type { get; }
+        public abstract TokenType Type { get; set; }
 
-        public virtual string Substring { get; protected internal set; }
+        public virtual string Substring { get; set; }
 
         public int Line { get; protected internal set; }
 
@@ -27,6 +27,9 @@ namespace Translator.Lexer
         Label,
         Keyword,
         Operator,
-        Unknown
+        Unknown,
+        Composite,
+        Axiom,
+        Nonterminal
     }
 }

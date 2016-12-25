@@ -121,6 +121,11 @@ namespace Parser.Precedence
 
             public override TokenType Type { get; set; } = TokenType.Unknown;
 
+            public static Token Sharp { get; set; } = new TokenEnum()
+            {
+                Substring = "#"
+            };
+
             public override string ToString()
             {
                 return Substring;

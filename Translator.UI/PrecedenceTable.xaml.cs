@@ -53,6 +53,18 @@ namespace Translator.UI
                 AddAllTokens(pair.Value);
             }
 
+            
+            foreach (var kv in allTokens)
+            {
+                if (!dict.ContainsKey(kv))
+                {
+                    dict[kv] = new Dictionary<Token, PrecedenceRelation?>();
+                }
+                dict[kv][PrecedenceParser.TokenEnum.Sharp] = PrecedenceRelation.More;
+            }
+            dict.Add(PrecedenceParser.TokenEnum.Sharp, allTokens.ToDictionary(x => x, x => (PrecedenceRelation?)PrecedenceRelation.Less));
+            allTokens.Add(PrecedenceParser.TokenEnum.Sharp);
+
             for (var i = 0; i < allTokens.Count; i++)
             {
                 var kv = allTokens[i];

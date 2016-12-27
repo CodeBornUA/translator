@@ -10,7 +10,7 @@ namespace Parser.Precedence
 {
     public class PrecedenceParser : IParser
     {
-        private PrecedenceGrammarHelper _helper = new PrecedenceGrammarHelper();
+        private PrecedenceGrammarHelper _helper;
 
         public class TokenEnum : Token
         {
@@ -30,11 +30,6 @@ namespace Parser.Precedence
             {
                 Substring = "Label"
             };
-            private static TokenEnum _labelUsage = new TokenEnum(x => x is Identifier && ((Identifier)x).IsLabel)
-            {
-                Substring = "Label usage"
-            };
-
             private Predicate<Token> _equalsPredicate;
 
 
@@ -58,17 +53,15 @@ namespace Parser.Precedence
             public static TokenEnum Statement = new TokenEnum(){Substring = "<Statement>", Type = TokenType.Nonterminal };
 
             public static TokenEnum UnlabeledStatement = new TokenEnum(){Substring = "<UnlabeledStatement>", Type = TokenType.Nonterminal };
-            public static TokenEnum LabelDef = new TokenEnum(){Substring = "<LabelDef>", Type = TokenType.Nonterminal };
             public static TokenEnum IdList = new TokenEnum(){Substring = "<IdList>", Type = TokenType.Nonterminal };
             public static TokenEnum IdList1 = new TokenEnum(){Substring = "<IdList1>", Type = TokenType.Nonterminal };
+            public static TokenEnum LabelDef = new TokenEnum(){Substring = "<LabelDef>", Type = TokenType.Nonterminal };
 
             public static TokenEnum Expression = new TokenEnum(){Substring = "<Expression>", Type = TokenType.Nonterminal };
             public static TokenEnum Expression1 = new TokenEnum(){Substring = "<Expression1>", Type = TokenType.Nonterminal };
             public static TokenEnum Term = new TokenEnum(){Substring = "<Term>", Type = TokenType.Nonterminal };
             public static TokenEnum Term1 = new TokenEnum(){Substring = "<Term1>", Type = TokenType.Nonterminal };
             public static TokenEnum Mult = new TokenEnum(){Substring = "<Mult>", Type = TokenType.Nonterminal };
-            public static TokenEnum Loop = new TokenEnum(){Substring = "<Loop>", Type = TokenType.Nonterminal };
-            public static TokenEnum If = new TokenEnum(){Substring = "<If>", Type = TokenType.Nonterminal };
             public static TokenEnum LogicalExpression = new TokenEnum(){Substring = "<LogicalExpression>", Type = TokenType.Nonterminal };
             public static TokenEnum LogicalExpression1 = new TokenEnum(){Substring = "<LogicalExpression1>", Type = TokenType.Nonterminal };
             public static TokenEnum LogicalTerm = new TokenEnum(){Substring = "<LogicalTerm>", Type = TokenType.Nonterminal };
@@ -93,15 +86,11 @@ namespace Parser.Precedence
 
             public override bool Equals(object obj)
             {
-                if (obj is TokenEnum)
+                if (obj is StringToken)
                 {
-                    return Substring != null ? Substring == ((Token)obj).Substring : ReferenceEquals(this, obj);
+                    return (obj as StringToken).Substring == Substring;
                 }
-                if (obj is Token)
-                {
-                    return _equalsPredicate((Token) obj);
-                }
-                return base.Equals(obj);
+                return ReferenceEquals(this, obj);
             }
 
             public static TokenEnum Id()
@@ -135,11 +124,6 @@ namespace Parser.Precedence
             {
                 return _const;
             }
-
-            public static TokenEnum LabelUsage()
-            {
-                return _labelUsage;
-            }
         }
 
         private static IList<KeyValuePair<Token, CompositeToken>> _grammar = new List<KeyValuePair<Token, CompositeToken>>();
@@ -170,6 +154,7 @@ namespace Parser.Precedence
         public PrecedenceParser(IObserver<LogEvent> logObserver)
         {
             _logObserver = logObserver;
+            _helper = new PrecedenceGrammarHelper(Logger);
 
             Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
@@ -273,7 +258,7 @@ namespace Parser.Precedence
         {
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.DefList, new CompositeToken()
             {
-                TokenEnum.DefList, TokenEnum.String(","), TokenEnum.Def
+                TokenEnum.DefList, TokenEnum.String(";"), TokenEnum.Def
             }));
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.DefList, new CompositeToken()
             {
@@ -287,7 +272,7 @@ namespace Parser.Precedence
 
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Def, new CompositeToken()
             {
-                TokenEnum.String("float"), TokenEnum.Id()
+                TokenEnum.IdList1, TokenEnum.String(":"), TokenEnum.String("float")
             }));
         }
 
@@ -301,23 +286,23 @@ namespace Parser.Precedence
             {
                 TokenEnum.NewLine(), TokenEnum.Statement
             }));
-            //_grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Statement, new CompositeToken()
-            //{
-            //    TokenEnum.UnlabeledStatement
-            //}));
+            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Statement, new CompositeToken()
+            {
+                TokenEnum.UnlabeledStatement
+            }));
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Statement, new CompositeToken()
             {
                 TokenEnum.LabelDef, TokenEnum.UnlabeledStatement
             }));
+            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.LabelDef, new CompositeToken()
+            {
+                TokenEnum.Label(), TokenEnum.String(":")
+            }));
+
 
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.StatementList1, new CompositeToken()
             {
                 TokenEnum.StatementList, TokenEnum.NewLine()
-            }));
-
-            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.LabelDef, new CompositeToken()
-            {
-                TokenEnum.Label(), TokenEnum.NewLine()
             }));
         }
 
@@ -331,7 +316,7 @@ namespace Parser.Precedence
 
         private static void Loop()
         {
-            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Loop, new CompositeToken()
+            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.UnlabeledStatement, new CompositeToken()
             {
                 TokenEnum.String("do"), TokenEnum.Id(), TokenEnum.String("="), TokenEnum.Expression1, TokenEnum.String("to"), TokenEnum.Expression1,
                 TokenEnum.StatementList1,
@@ -341,9 +326,9 @@ namespace Parser.Precedence
 
         private static void If()
         {
-            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.If, new CompositeToken()
+            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.UnlabeledStatement, new CompositeToken()
             {
-                TokenEnum.String("if"), TokenEnum.LogicalExpression1, TokenEnum.String("then"), TokenEnum.String("goto"), TokenEnum.LabelUsage()
+                TokenEnum.String("if"), TokenEnum.LogicalExpression1, TokenEnum.String("then"), TokenEnum.String("goto"), TokenEnum.Label()
             }));
         }
 
@@ -355,7 +340,7 @@ namespace Parser.Precedence
             }));
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.IdList, new CompositeToken()
             {
-                TokenEnum.Id()
+                TokenEnum.String(","), TokenEnum.Id()
             }));
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.IdList, new CompositeToken()
             {
@@ -409,10 +394,6 @@ namespace Parser.Precedence
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Expression, new CompositeToken()
             {
                 TokenEnum.String("-"), TokenEnum.Term1
-            }));
-            _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Expression, new CompositeToken()
-            {
-                TokenEnum.Term
             }));
 
             _grammar.Add(new KeyValuePair<Token, CompositeToken>(TokenEnum.Term1, new CompositeToken()

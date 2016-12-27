@@ -28,7 +28,7 @@ namespace Parser.Precedence.Tests
                 }
             };
 
-            var helper = new PrecedenceGrammarHelper();
+            var helper = new PrecedenceGrammarHelper(null);
             var firstPlus = helper.FirstPlus(new List<KeyValuePair<Token, CompositeToken>>()
             {
                 

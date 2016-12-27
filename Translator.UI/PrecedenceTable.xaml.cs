@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -46,6 +47,15 @@ namespace Translator.UI
                     }
                 }
             }
+
+            //Dictionary<TKey, TValue> UnionDict<TKey, TValue>(Dictionary<TKey, TValue> dictA, Dictionary<TKey, TValue> dictB)
+            //{
+            //    var d = new Dictionary<TKey, TValue>();
+            //    foreach (var VARIABLE in COLLECTION)
+            //    {
+                    
+            //    }
+            //}
 
             foreach (var pair in grammar)
             {

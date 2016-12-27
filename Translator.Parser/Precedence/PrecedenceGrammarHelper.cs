@@ -4,12 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog.Core;
 using Translator.Lexer;
+using Serilog;
 
 namespace Parser.Precedence
 {
     public class PrecedenceGrammarHelper
     {
+        private ILogger _logger;
+
+        public PrecedenceGrammarHelper(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public IEnumerable<Token> FirstPlus(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
         {
             var list = new List<Token>();
@@ -139,7 +148,7 @@ namespace Parser.Precedence
             return dict;
         }
 
-        private static void SetRelation(Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> relationMatrix, 
+        private void SetRelation(Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> relationMatrix, 
             Token leftToken, 
             Token rightToken, 
             PrecedenceRelation precedenceRelation)
@@ -151,6 +160,7 @@ namespace Parser.Precedence
 
             if (relationMatrix[leftToken].ContainsKey(rightToken) && precedenceRelation != relationMatrix[leftToken][rightToken])
             {
+                _logger.Error("Conflict: {0} {1} (was {2}, attempted {3})", leftToken, rightToken, relationMatrix[leftToken][rightToken],  precedenceRelation);
                 throw new InvalidOperationException("There is an another relation in this cell already");
             }
             relationMatrix[leftToken][rightToken] = precedenceRelation;

@@ -170,7 +170,7 @@ namespace Translator.Lexer
                 .PermitReentry(Symbol.Splitter);
 
             machine.Configure(LexerState.LabelDefinition)
-                .OnUnhandled(ReturnLabel);
+                .OnEntry(ReturnLabel);
 
             return machine;
         }
@@ -214,16 +214,15 @@ namespace Translator.Lexer
             ReturnToken(con, trigger);
         }
 
-        private void ReturnLabel(LexerState state, Symbol trigger)
+        private void ReturnLabel(StateMachine.Transition transition)
         {
             Log(LogEventLevel.Information, "Found a label: {0}", false, CurrentToken);
-            var label = new LabelToken(CurrentToken.ToString())
-            {
-                Line = _line,
-                TokenIndex = LabelIndex
-            };
+            var label = new LabelToken(CurrentToken.Substring);
             _labels.Add(label);
-            ReturnToken(label, trigger);
+            ReturnToken(label, transition.Trigger);
+            var token= new StringToken();
+            token.Append(':');
+            ReturnToken(token, transition.Trigger);
         }
 
         private void Error(LexerState state, Symbol trigger)

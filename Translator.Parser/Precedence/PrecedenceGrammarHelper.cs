@@ -47,6 +47,27 @@ namespace Parser.Precedence
             return list.Distinct();
         }
 
+        private IEnumerable<Token> First(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
+        {
+            var list = new List<Token>();
+            void Impl(Token tokenIn)
+            {
+                if (tokenIn == null || list.Contains(tokenIn))
+                {
+                    return;
+                }
+
+                list.Add(tokenIn);
+            }
+
+            foreach (var source in grammar.Where(x => x.Key == token))
+            {
+                Impl(source.Value.First());
+            }
+
+            return list.Distinct();
+        }
+
         public IEnumerable<Token> LastPlus(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
         {
             var list = new List<Token>();
@@ -90,6 +111,11 @@ namespace Parser.Precedence
                         var nextToken = token.Value[index + 1];
                         SetRelation(dict, tokenInner, nextToken, PrecedenceRelation.Equal);
                     }
+                }
+
+                if (!dict.ContainsKey(token.Value[token.Value.Count - 1]))
+                {
+                    dict[token.Value[token.Value.Count - 1]] = new Dictionary<Token, PrecedenceRelation?>();
                 }
             }
 
@@ -142,8 +168,21 @@ namespace Parser.Precedence
                             SetRelation(dict, token, token2, PrecedenceRelation.More);
                         }
                     }
+
+                    //LEFT < FIRST(RIGHT)
+                    foreach (var token2 in firstPlus)
+                    {
+                        SetRelation(dict, leftToken, token2, PrecedenceRelation.Less);
+                    }
                 }
             }
+
+            foreach (var kv in dict)
+            {
+                dict[kv.Key][PrecedenceParser.TokenEnum.Sharp] = PrecedenceRelation.More;
+            }
+            dict.Add(PrecedenceParser.TokenEnum.Sharp, dict.Keys.ToDictionary(x => x, x => (PrecedenceRelation?)PrecedenceRelation.Less));
+
 
             return dict;
         }

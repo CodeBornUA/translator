@@ -168,7 +168,7 @@ namespace Parser
 
             _transitions.Add(StandartTransition(115, "'then' expected here", (x => x.Substring == "then", 116)));
             _transitions.Add(StandartTransition(116, "'goto' expected here", (x => x.Substring == "goto", 117)));
-            _transitions.Add(StandartTransition(117, "Label usage is expected here", (x => x is Identifier && ((Identifier)x).IsLabel, null)));
+            _transitions.Add(StandartTransition(117, "Label usage is expected here", (x => x is LabelToken, null)));
 
             _transitions.Add(new StateTransition()
             {

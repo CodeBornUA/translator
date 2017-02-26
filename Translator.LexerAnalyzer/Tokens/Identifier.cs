@@ -50,6 +50,5 @@ namespace Translator.Lexer
         }
 
         public override string Substring => Name;
-        public bool IsLabel { get; set; }
     }
 }

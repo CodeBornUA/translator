@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Translator.Lexer;
@@ -82,6 +81,13 @@ namespace Parser
         {
             Log(LogEventLevel.Verbose, "Looking for an identifier");
             Evaluate(token => token is Identifier && (filterFunc?.Invoke((Identifier) token) ?? true));
+            return this;
+        }
+
+        public TokensSequence Label()
+        {
+            Log(LogEventLevel.Verbose, "Looking for a label");
+            Evaluate(token => token is LabelToken);
             return this;
         }
 

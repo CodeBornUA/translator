@@ -56,29 +56,40 @@ namespace Translator.UI
                 ViewModel.AllTokens = _lexer.Parsed;
                 ViewModel.Identifiers = _lexer.Identifiers;
                 ViewModel.Constants = _lexer.Constants;
-                ViewModel.Labels = _lexer.Labels;
+                ViewModel.Labels = _lexer.Labels.Distinct();
                 //_lexer.Validate(ViewModel.AllTokens.ToList());
 
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
 
-                //valid = valid && _parser.CheckSyntax(_lexer.Parsed);
-                //if (valid)
-                //{
-                //    MessageBox.Show("Program is valid");
-                //    return;
-                //}
-                
-                //throw new Exception();
+                (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
+                valid = valid && _parser.CheckSyntax(_lexer.Parsed);
+                if (valid)
+                {
+                    MessageBox.Show("Program is valid");
+                    return;
+                }
 
-                var table = new PrecedenceTable();
-                table.FillTable(PrecedenceParser.Grammar, (_parser as PrecedenceParser).Precedence);
-                table.ShowDialog();
+                throw new Exception();
+
+                //var table = new PrecedenceTable();
+                //table.FillTable(PrecedenceParser.Grammar, (_parser as PrecedenceParser).Precedence);
+                //table.ShowDialog();
             }
             catch (Exception)
             {
                 MessageBox.Show("Program contains errors");
                 //Ignore exceptions - all errors will be in log
             }
+        }
+
+        private void MainWindow_StackChanged(Stack<Token> stack, PrecedenceRelation relation, ArraySegment<Token> segment)
+        {
+            ViewModel.PrecedenceParsingSteps.Add(new PrecedenceParsingStep()
+            {
+                StackContent = stack.Aggregate(string.Empty, (agr, cur) => string.Join(" ", cur.Substring, agr)).Trim(),
+                InputTokens = segment.Aggregate(string.Empty, (agr, cur) => string.Join(" ", agr, cur.Substring)).Trim(),
+                Relation = relation.ToString()
+            });
         }
 
         /// <summary>

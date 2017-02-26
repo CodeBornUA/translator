@@ -11,7 +11,7 @@ namespace Translator.Lexer
 
         public virtual string Substring { get; set; }
 
-        public int Line { get; protected internal set; }
+        public int Line { get; set; }
 
         public bool Equals(Token other)
         {

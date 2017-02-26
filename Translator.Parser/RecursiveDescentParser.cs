@@ -117,7 +117,7 @@ namespace Parser
                     .Check(LogicalExpression)
                     .String("then")
                     .String("goto")
-                    .Id(x => x.IsLabel));
+                    .Label());
         }
 
         private bool LogicalExpression(ref IEnumerator<Token> enumerator)

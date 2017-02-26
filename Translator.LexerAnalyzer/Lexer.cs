@@ -96,7 +96,7 @@ namespace Translator.Lexer
 
             (_identifiers as ObservableCollection<Identifier>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
             (_constants as ObservableCollection<Constant<float>>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
-            (_labels as ObservableCollection<LabelToken>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
+            //(_labels as ObservableCollection<LabelToken>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
             _lexerValidator = new LexerValidator(this);
         }
 
@@ -132,14 +132,14 @@ namespace Translator.Lexer
                 .Permit(Symbol.Splitter, LexerState.Splitter)
                 .Permit(Symbol.Comma, LexerState.Comma)
                 .Permit(Symbol.Hypen, LexerState.Hypen)
+                .Permit(Symbol.Colon, LexerState.Colon)
                 .Ignore(Symbol.Space)
                 .OnUnhandled(Error);
 
             machine.Configure(LexerState.String)
                 .PermitReentry(Symbol.Letter)
                 .PermitReentry(Symbol.Digit)
-                .Permit(Symbol.Colon, LexerState.LabelDefinition)
-                .OnUnhandled(ReturnIdOrToken);
+                .OnUnhandled(ReturnIdOrTokenOrLabel);
 
             machine.Configure(LexerState.Number)
                 .PermitReentry(Symbol.Digit)
@@ -169,15 +169,12 @@ namespace Translator.Lexer
             machine.Configure(LexerState.Splitter)
                 .PermitReentry(Symbol.Splitter);
 
-            machine.Configure(LexerState.LabelDefinition)
-                .OnEntry(ReturnLabel);
-
             return machine;
         }
 
         private void ReturnToken(Token token, Symbol trigger)
         {
-            if (_tokens.Contains(CurrentToken.ToString()))
+            if (_tokens.Contains(CurrentToken.ToString()) && CurrentToken.TokenIndex == null)
             {
                 CurrentToken.TokenIndex = _tokens.IndexOf(CurrentToken.ToString()) + 1;
             }
@@ -217,12 +214,30 @@ namespace Translator.Lexer
         private void ReturnLabel(StateMachine.Transition transition)
         {
             Log(LogEventLevel.Information, "Found a label: {0}", false, CurrentToken);
-            var label = new LabelToken(CurrentToken.Substring);
-            _labels.Add(label);
+            var name = CurrentToken.Substring.Trim(':');
+            var existingLabel = _labels.FirstOrDefault(l => l.Name == name);
+            //var label = new LabelToken(name)
+            //{
+            //    Line = _line,
+            //    TokenIndex = LabelIndex,
+            //    Index = existingLabel != null ? existingLabel.Index : _labels.Count
+            //};
+            //_labels.Add(label);
+
+            var label = _identifiers.FirstOrDefault(x => x.Name == name)?.Clone() as LabelToken;
+            if (label == null)
+            {
+                label = new LabelToken(name)
+                {
+                    Line = _line,
+                    TokenIndex = LabelIndex,
+                    Index = existingLabel != null ? existingLabel.Index : _labels.Count
+                };
+                _labels.Add(label);
+            }
+            label.Line = _line;
+
             ReturnToken(label, transition.Trigger);
-            var token= new StringToken();
-            token.Append(':');
-            ReturnToken(token, transition.Trigger);
         }
 
         private void Error(LexerState state, Symbol trigger)
@@ -231,13 +246,18 @@ namespace Translator.Lexer
             throw new InvalidOperationException();
         }
 
-        private void ReturnIdOrToken(LexerState lexerState, Symbol symbol)
+        private void ReturnIdOrTokenOrLabel(LexerState lexerState, Symbol symbol)
         {
             if (_tokens.Contains(CurrentToken.ToString()))
             {
                 CurrentToken.TokenIndex = _tokens.IndexOf(CurrentToken.ToString()) + 1;
                 Log(LogEventLevel.Information, "Found token {0}", false, CurrentToken);
                 ReturnToken(CurrentToken, symbol);
+            }
+            else if(symbol.Class.Class == Class.Colon || _parsed.Last().Substring == "goto")
+            {
+                //Label
+                ReturnLabel(new StateMachine<LexerState, Symbol>.Transition(lexerState, LexerState.LabelDefinition, symbol));
             }
             else
             {
@@ -247,8 +267,7 @@ namespace Translator.Lexer
                 {
                     identifier = new Identifier(CurrentToken.ToString())
                     {
-                        TokenIndex = IdIndex,
-                        IsLabel = _parsed.Last().Substring == "goto"
+                        TokenIndex = IdIndex
                     };
                     _identifiers.Add(identifier);
                 }

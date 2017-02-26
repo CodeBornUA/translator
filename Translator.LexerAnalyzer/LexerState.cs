@@ -20,6 +20,7 @@
         Comma,
         LabelDefinition,
         LabelWithSplitter,
-        Hypen
+        Hypen,
+        Colon
     }
 }

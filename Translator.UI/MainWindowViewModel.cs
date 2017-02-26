@@ -17,6 +17,7 @@ namespace Translator.UI
         private IEnumerable<LabelToken> _labels;
         private LogEventLevel _level;
         private readonly ObservableCollection<ErrorItem> _logMessages = new ObservableCollection<ErrorItem>();
+        private ObservableCollection<PrecedenceParsingStep> _precedenceSteps = new ObservableCollection<PrecedenceParsingStep>();
 
         public MainWindowViewModel()
         {
@@ -99,6 +100,11 @@ namespace Translator.UI
             }
         }
 
+        public ObservableCollection<PrecedenceParsingStep> PrecedenceParsingSteps
+        {
+            get { return _precedenceSteps; }
+        }
+
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -107,6 +113,14 @@ namespace Translator.UI
         public void Reset()
         {
             LogMessages.Clear();
+            PrecedenceParsingSteps.Clear();
         }
+    }
+
+    public class PrecedenceParsingStep
+    {
+        public string StackContent { get; set; }
+        public string Relation { get; set; }
+        public string InputTokens { get; set; }
     }
 }

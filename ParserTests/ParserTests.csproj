@@ -47,6 +47,7 @@
       <HintPath>..\packages\MSTest.TestFramework.1.0.5-preview\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10" />
     <Reference Include="System" />
   </ItemGroup>
   <Choose>

@@ -60,6 +60,15 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
+            <TabItem Header="Precedence parse table">
+                <DataGrid IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" ItemsSource="{Binding ViewModel.PrecedenceParsingSteps, ElementName=window}" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Stack" Width="2*" Binding="{Binding StackContent}"/>
+                        <DataGridTextColumn Header="Relation" Width="*" Binding="{Binding Relation}"/>
+                        <DataGridTextColumn Header="Input tokens" Width="3*" Binding="{Binding InputTokens}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
             <TabItem Header="Log">
                 <Grid>
                     <Grid.RowDefinitions>

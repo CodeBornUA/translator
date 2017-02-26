@@ -16,7 +16,7 @@ namespace Translator.Lexer
 
         public void ValidateLabels(IList<Token> tokens)
         {
-            var labelUsages = tokens.SkipWhile(x => x.Substring != "begin").OfType<Identifier>().Where(x => x.IsLabel).Distinct();
+            var labelUsages = tokens.SkipWhile(x => x.Substring != "begin").OfType<LabelToken>().Distinct();
             var labels = tokens.Where(x => x.Type == TokenType.Label).OfType<LabelToken>();
 
             var notUsed = labels.Where(x => labelUsages.All(us => us.Substring != x.Name));
@@ -34,8 +34,8 @@ namespace Translator.Lexer
 
         public void ValidateIds(IList<Token> tokens)
         {
-            var idDefinitions = tokens.SkipWhile(x => x.Substring != "var").TakeWhile(x => x.Substring != "\r\n").OfType<Identifier>().Where(x => !x.IsLabel).Distinct().ToList();
-            var ids = tokens.SkipWhile(x => x.Substring != "begin").OfType<Identifier>().Where(x => !x.IsLabel).Distinct();
+            var idDefinitions = tokens.SkipWhile(x => x.Substring != "var").TakeWhile(x => x.Substring != "\r\n").OfType<Identifier>().Distinct().ToList();
+            var ids = tokens.SkipWhile(x => x.Substring != "begin").OfType<Identifier>().Distinct();
 
             var undefined = ids.Where(x => idDefinitions.All(us => us.Name != x.Name));
             foreach (var idToken in undefined)

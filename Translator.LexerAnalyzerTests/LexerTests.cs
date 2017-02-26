@@ -22,6 +22,17 @@ begin
     next
 end
 ";
+
+        public string TestPrecedenceProgram = @"program test
+var ,a,b,c : float
+begin
+    readl(,a, b)
+    lbl: a = a - 1
+    if a>0 then goto lbl
+    do c = 1 to 10
+        writel(,c)
+    next
+end";
         [TestMethod]
         public void LexerTest()
         {

@@ -7,82 +7,25 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Autofac;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Stateless;
 using Translator.Core;
 using Translator.LexerAnalyzer.Tokens;
-using IContainer = Autofac.IContainer;
-using StateMachine = Stateless.StateMachine<Translator.Lexer.LexerState, Translator.Lexer.Symbol>;
+using StateMachine = Stateless.StateMachine<Translator.LexerAnalyzer.LexerState, Translator.LexerAnalyzer.Symbol>;
 
-namespace Translator.Lexer
+namespace Translator.LexerAnalyzer
 {
-
     public class Lexer
     {
-        private readonly IObserver<LogEvent> _logObserver;
-        private StringToken _currentToken;
-        private readonly IList<string> _tokens;
-
-        private readonly ICollection<Token> _parsed = new ObservableCollection<Token>();
-        private readonly ICollection<Identifier> _identifiers = new ObservableCollection<Identifier>();
-        private readonly ICollection<Constant<float>> _constants = new ObservableCollection<Constant<float>>();
-        private readonly ICollection<LabelToken> _labels = new ObservableCollection<LabelToken>();
         private readonly IList<SymbolClass> _classes;
-        private readonly StateMachine _machine;
-        private int _line;
-        private int _position;
         private readonly LexerValidator _lexerValidator;
+        private readonly IObserver<LogEvent> _logObserver;
+        private readonly StateMachine _machine;
 
-        public Logger Logger { get; set; }
-
-        public StringToken CurrentToken
-        {
-            get { return _currentToken ?? (_currentToken = new StringToken()); }
-            set { _currentToken = value; }
-        }
-
-        #region Configuration
-
-        public static IContainer ApplicationContainer { get; private set; }
-
-        public static IConfigurationRoot Configuration { get; set; }
-
-        private void Configure()
-        {
-            var assembly = typeof(Lexer).GetTypeInfo().Assembly;
-            var builder = new ConfigurationBuilder()
-                .AddEmbeddedJsonFile(assembly, "grammar.json");
-
-            Configuration = builder.Build();
-
-            // Create the container builder.
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterInstance(new LoggerFactory().AddSerilog())
-                .As<ILoggerFactory>();
-
-            Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.Observers(ConfigureObservers)
-                .CreateLogger();
-
-            ApplicationContainer = containerBuilder.Build();
-        }
-
-        private void ConfigureObservers(IObservable<LogEvent> observable)
-        {
-            if (_logObserver != null)
-            {
-                observable.Subscribe(_logObserver);
-            }
-        }
-
-        #endregion
+        private readonly IList<string> _tokens;
+        private StringToken _currentToken;
 
         public Lexer(IObserver<LogEvent> logObserver = null)
         {
@@ -94,29 +37,53 @@ namespace Translator.Lexer
             _tokens = GetTokens();
             _classes = GetClasses();
 
-            (_identifiers as ObservableCollection<Identifier>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
-            (_constants as ObservableCollection<Constant<float>>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
-            //(_labels as ObservableCollection<LabelToken>).CollectionChanged += (sender, args) => SetTokenIndex(args, sender);
+            (Identifiers as ObservableCollection<IdentifierToken>).CollectionChanged +=
+                (sender, args) => SetTokenIndex(args, sender);
+            (Constants as ObservableCollection<ConstantToken<float>>).CollectionChanged +=
+                (sender, args) => SetTokenIndex(args, sender);
             _lexerValidator = new LexerValidator(this);
         }
+
+        public Logger Logger { get; set; }
+
+        public StringToken CurrentToken
+        {
+            get { return _currentToken ?? (_currentToken = new StringToken()); }
+            set { _currentToken = value; }
+        }
+
+        public int? IdIndex => _tokens.Count + 1;
+        public int? ConstIndex => _tokens.Count + 2;
+        public int? LabelIndex => _tokens.Count + 3;
+
+        public int Position { get; private set; }
+
+        public int Line { get; private set; }
+
+        public ICollection<Token> Parsed { get; } = new ObservableCollection<Token>();
+
+        public ICollection<IdentifierToken> Identifiers { get; } = new ObservableCollection<IdentifierToken>();
+
+        public ICollection<ConstantToken<float>> Constants { get; } = new ObservableCollection<ConstantToken<float>>();
+
+        public ICollection<LabelToken> Labels { get; } = new ObservableCollection<LabelToken>();
 
         private static void SetTokenIndex(NotifyCollectionChangedEventArgs args, object sender)
         {
             if (args.Action == NotifyCollectionChangedAction.Add)
-            {
-                ((dynamic)args.NewItems[0]).Index = (sender as ICollection).Count - 1;
-            }
+                ((dynamic) args.NewItems[0]).Index = (sender as ICollection).Count - 1;
         }
 
-        public StateMachine<LexerState, Symbol> CreateMachine()
+        public StateMachine CreateMachine()
         {
             Log(LogEventLevel.Information, "Configuring the state machine");
-            var machine = new StateMachine<LexerState, Symbol>(LexerState.Initial);
+            var machine = new StateMachine(LexerState.Initial);
 
             machine.OnUnhandledTrigger((state, symbol) => ReturnToken(CurrentToken, symbol));
             machine.OnTransition(transition =>
             {
-                Log(LogEventLevel.Information, "Transition: {0} -> ({1}) -> {2}", true, transition.Source, Regex.Escape(transition.Trigger.ToString()), transition.Destination);
+                Log(LogEventLevel.Information, "Transition: {0} -> ({1}) -> {2}", true, transition.Source,
+                    Regex.Escape(transition.Trigger.ToString()), transition.Destination);
                 CurrentToken.Append((char) transition.Trigger.Value);
             });
 
@@ -147,8 +114,8 @@ namespace Translator.Lexer
                 .OnUnhandled(ReturnConst);
 
             machine.Configure(LexerState.NumberWithPoint)
-               .PermitReentry(Symbol.Digit)
-               .OnUnhandled(ReturnConst);
+                .PermitReentry(Symbol.Digit)
+                .OnUnhandled(ReturnConst);
 
             machine.Configure(LexerState.Point)
                 .Permit(Symbol.Digit, LexerState.NumberWithPoint)
@@ -175,39 +142,35 @@ namespace Translator.Lexer
         private void ReturnToken(Token token, Symbol trigger)
         {
             if (_tokens.Contains(CurrentToken.ToString()) && CurrentToken.TokenIndex == null)
-            {
                 CurrentToken.TokenIndex = _tokens.IndexOf(CurrentToken.ToString()) + 1;
-            }
             Log(LogEventLevel.Information, "Added token: {0}", false, CurrentToken.Escaped);
-            _parsed.Add(token);
-            CurrentToken = new StringToken() { Line = _line };
+            Parsed.Add(token);
+            CurrentToken = new StringToken {Line = Line};
 
             _machine.Reset();
             if (trigger != Symbol.Space && trigger.Value != null)
-            {
                 _machine.Fire(trigger);
-            }
         }
 
         private void ReturnConst(LexerState state, Symbol trigger)
         {
             Log(LogEventLevel.Information, "Found a constant");
-            var value = Constant<float>.Parse(CurrentToken.ToString());
-            Constant<float> con = _constants.FirstOrDefault(x => Math.Abs(x.Value - value) < 1E-5)?.Clone() as Constant<float>;
+            var value = ConstantToken<float>.Parse(CurrentToken.ToString());
+            var con = Constants.FirstOrDefault(x => Math.Abs(x.Value - value) < 1E-5)?.Clone() as ConstantToken<float>;
             if (con == null)
             {
-                con = new Constant<float>(CurrentToken.ToString())
+                con = new ConstantToken<float>(CurrentToken.ToString())
                 {
                     TokenIndex = ConstIndex,
                     Substring = CurrentToken.ToString()
                 };
-                _constants.Add(con);
+                Constants.Add(con);
             }
             else
             {
                 Log(LogEventLevel.Information, "The constant is already processed");
             }
-            con.Line = _line;
+            con.Line = Line;
             ReturnToken(con, trigger);
         }
 
@@ -215,27 +178,20 @@ namespace Translator.Lexer
         {
             Log(LogEventLevel.Information, "Found a label: {0}", false, CurrentToken);
             var name = CurrentToken.Substring.Trim(':');
-            var existingLabel = _labels.FirstOrDefault(l => l.Name == name);
-            //var label = new LabelToken(name)
-            //{
-            //    Line = _line,
-            //    TokenIndex = LabelIndex,
-            //    Index = existingLabel != null ? existingLabel.Index : _labels.Count
-            //};
-            //_labels.Add(label);
+            var existingLabel = Labels.FirstOrDefault(l => l.Name == name);
 
-            var label = _identifiers.FirstOrDefault(x => x.Name == name)?.Clone() as LabelToken;
+            var label = Identifiers.FirstOrDefault(x => x.Name == name)?.Clone() as LabelToken;
             if (label == null)
             {
                 label = new LabelToken(name)
                 {
-                    Line = _line,
+                    Line = Line,
                     TokenIndex = LabelIndex,
-                    Index = existingLabel != null ? existingLabel.Index : _labels.Count
+                    Index = existingLabel != null ? existingLabel.Index : Labels.Count
                 };
-                _labels.Add(label);
+                Labels.Add(label);
             }
-            label.Line = _line;
+            label.Line = Line;
 
             ReturnToken(label, transition.Trigger);
         }
@@ -254,60 +210,27 @@ namespace Translator.Lexer
                 Log(LogEventLevel.Information, "Found token {0}", false, CurrentToken);
                 ReturnToken(CurrentToken, symbol);
             }
-            else if(symbol.Class.Class == Class.Colon || _parsed.Last().Substring == "goto")
+            else if (symbol.Class.Class == Class.Colon || Parsed.Last().Substring == "goto")
             {
                 //Label
-                ReturnLabel(new StateMachine<LexerState, Symbol>.Transition(lexerState, LexerState.LabelDefinition, symbol));
+                ReturnLabel(new StateMachine.Transition(lexerState, LexerState.LabelDefinition, symbol));
             }
             else
             {
                 Log(LogEventLevel.Information, "Not found token - treat as ID: {0}", false, CurrentToken);
-                Identifier identifier = _identifiers.FirstOrDefault(x => x.Name == CurrentToken.ToString())?.Clone() as Identifier;
+                var identifier =
+                    Identifiers.FirstOrDefault(x => x.Name == CurrentToken.ToString())?.Clone() as IdentifierToken;
                 if (identifier == null)
                 {
-                    identifier = new Identifier(CurrentToken.ToString())
+                    identifier = new IdentifierToken(CurrentToken.ToString())
                     {
                         TokenIndex = IdIndex
                     };
-                    _identifiers.Add(identifier);
+                    Identifiers.Add(identifier);
                 }
-                identifier.Line = _line;
+                identifier.Line = Line;
                 ReturnToken(identifier, symbol);
             }
-        }
-
-        public int? IdIndex => _tokens.Count + 1;
-        public int? ConstIndex => _tokens.Count + 2;
-        public int? LabelIndex => _tokens.Count + 3;
-
-        public int Position
-        {
-            get { return _position; }
-        }
-
-        public int Line
-        {
-            get { return _line; }
-        }
-
-        public ICollection<Token> Parsed
-        {
-            get { return _parsed; }
-        }
-
-        public ICollection<Identifier> Identifiers
-        {
-            get { return _identifiers; }
-        }
-
-        public ICollection<Constant<float>> Constants
-        {
-            get { return _constants; }
-        }
-
-        public ICollection<LabelToken> Labels
-        {
-            get { return _labels; }
         }
 
         public ICollection<Token> ParseTokens(TextReader reader)
@@ -324,34 +247,34 @@ namespace Translator.Lexer
                     _machine.Fire(new Symbol(null));
                     break;
                 }
-                _position++;
+                Position++;
 
-                _machine.Fire(new Symbol((char)symbol, _classes));
+                _machine.Fire(new Symbol((char) symbol, _classes));
 
                 if (symbol == '\n')
                 {
                     Log(LogEventLevel.Information, "New line reached");
-                    _line++;
-                    _position = 0;
+                    Line++;
+                    Position = 0;
                 }
             }
 
             Log(LogEventLevel.Information, "End of parsing");
-            return _parsed;
+            return Parsed;
         }
 
         private void Reset()
         {
             Log(LogEventLevel.Information, "State machine was reset");
 
-            _line = 1;
-            _position = 1;
+            Line = 1;
+            Position = 1;
             _machine.Reset();
-            CurrentToken = new StringToken() { Line = _line };
-            _identifiers.Clear();
-            _constants.Clear();
-            _labels.Clear();
-            _parsed.Clear();
+            CurrentToken = new StringToken {Line = Line};
+            Identifiers.Clear();
+            Constants.Clear();
+            Labels.Clear();
+            Parsed.Clear();
         }
 
         public IList<string> GetTokens()
@@ -363,7 +286,7 @@ namespace Translator.Lexer
         public IList<SymbolClass> GetClasses()
         {
             Log(LogEventLevel.Information, "Loading classes...");
-            return Enum.GetValues(typeof(Class)).Cast<Class>().Select(@class => new SymbolClass()
+            return Enum.GetValues(typeof(Class)).Cast<Class>().Select(@class => new SymbolClass
             {
                 Class = @class,
                 Symbols = Configuration["classes:" + @class.ToString("G")].ToCharArray()
@@ -385,5 +308,32 @@ namespace Translator.Lexer
         {
             Logger.Write(level, $"{(includePosition ? Line + ":" + Position : string.Empty)} {messageFormat}", objs);
         }
+
+        #region Configuration
+
+        public static IConfigurationRoot Configuration { get; set; }
+
+        private void Configure()
+        {
+            var assembly = typeof(Lexer).GetTypeInfo().Assembly;
+            var builder = new ConfigurationBuilder()
+                .AddEmbeddedJsonFile(assembly, "grammar.json");
+
+            Configuration = builder.Build();
+
+            // Create the container builder.
+            Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Observers(ConfigureObservers)
+                .CreateLogger();
+        }
+
+        private void ConfigureObservers(IObservable<LogEvent> observable)
+        {
+            if (_logObserver != null)
+                observable.Subscribe(_logObserver);
+        }
+
+        #endregion
     }
 }

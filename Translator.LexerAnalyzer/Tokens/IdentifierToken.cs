@@ -1,20 +1,21 @@
 ﻿using System;
 
-namespace Translator.Lexer
+namespace Translator.LexerAnalyzer.Tokens
 {
-    public class Identifier : StringToken, IEquatable<Identifier>
+    public class IdentifierToken : StringToken, IEquatable<IdentifierToken>
     {
+        public IdentifierToken(string name)
+        {
+            Name = name;
+        }
 
         public override TokenType Type => TokenType.Identifier;
 
         public string Name { get; }
 
-        public Identifier(string name)
-        {
-            Name = name;
-        }
+        public override string Substring => Name;
 
-        public bool Equals(Identifier other)
+        public bool Equals(IdentifierToken other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -25,21 +26,21 @@ namespace Translator.Lexer
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Identifier) obj);
+            if (obj.GetType() != GetType()) return false;
+            return Equals((IdentifierToken) obj);
         }
 
         public override int GetHashCode()
         {
-            return (Name != null ? Name.GetHashCode() : 0);
+            return Name != null ? Name.GetHashCode() : 0;
         }
 
-        public static bool operator ==(Identifier left, Identifier right)
+        public static bool operator ==(IdentifierToken left, IdentifierToken right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(Identifier left, Identifier right)
+        public static bool operator !=(IdentifierToken left, IdentifierToken right)
         {
             return !Equals(left, right);
         }
@@ -48,7 +49,5 @@ namespace Translator.Lexer
         {
             return Name;
         }
-
-        public override string Substring => Name;
     }
 }

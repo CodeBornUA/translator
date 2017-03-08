@@ -1,27 +1,27 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace ParserTests
 {
-    [TestClass()]
+    [TestClass]
     public class PrnComputerTests
     {
         [DataTestMethod]
-        [DataRow(2,2,"+",4)]
-        [DataRow(4,2,"-",2)]
-        [DataRow(4,2,"*",8)]
-        [DataRow(6,3,"/",2)]
+        [DataRow(2, 2, "+", 4)]
+        [DataRow(4, 2, "-", 2)]
+        [DataRow(4, 2, "*", 8)]
+        [DataRow(6, 3, "/", 2)]
         public void ItComputesConstantExpression(float operand1, float operand2, string operation, float expected)
         {
             var expression = new Token[]
             {
-                new Constant<float>(operand1), new Constant<float>(operand2), new StringToken(operation)
+                new ConstantToken<float>(operand1), new ConstantToken<float>(operand2), new StringToken(operation)
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<Identifier, Constant<float>>());
+                new Dictionary<IdentifierToken, ConstantToken<float>>());
 
             Assert.AreEqual(expected, result);
         }
@@ -31,11 +31,11 @@ namespace ParserTests
         {
             var expression = new Token[]
             {
-                new Constant<float>(2), new Constant<float>(4), new StringToken("-")
+                new ConstantToken<float>(2), new ConstantToken<float>(4), new StringToken("-")
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<Identifier, Constant<float>>());
+                new Dictionary<IdentifierToken, ConstantToken<float>>());
 
             Assert.AreEqual(-2, result);
         }
@@ -45,11 +45,11 @@ namespace ParserTests
         {
             var expression = new Token[]
             {
-                new Constant<float>(2), new Constant<float>(4), new StringToken("@") , new StringToken("+")
+                new ConstantToken<float>(2), new ConstantToken<float>(4), new StringToken("@"), new StringToken("+")
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<Identifier, Constant<float>>());
+                new Dictionary<IdentifierToken, ConstantToken<float>>());
 
             Assert.AreEqual(-2, result);
         }
@@ -57,16 +57,16 @@ namespace ParserTests
         [TestMethod]
         public void ItComputesExpressionWithIdentifiers()
         {
-            var i = new Identifier("i");
+            var i = new IdentifierToken("i");
             var expression = new Token[]
             {
                 i, i, new StringToken("+")
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<Identifier, Constant<float>>()
+                new Dictionary<IdentifierToken, ConstantToken<float>>
                 {
-                    [i] = new Constant<float>(2)
+                    [i] = new ConstantToken<float>(2)
                 });
 
             Assert.AreEqual(4, result);

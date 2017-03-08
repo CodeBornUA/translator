@@ -4,9 +4,9 @@ using System.Windows.Data;
 using System.Windows.Media;
 using Serilog.Events;
 
-namespace Translator.UI
+namespace Translator.UI.Logging
 {
-    class LogLevelBrushConverter : IValueConverter
+    internal class LogLevelBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -33,7 +33,7 @@ namespace Translator.UI
         }
     }
 
-    class LogLevelIntConverter : IValueConverter
+    internal class LogLevelIntConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -44,9 +44,7 @@ namespace Translator.UI
         {
             var v = value as double?;
             if (v != null)
-            {
-                return (LogEventLevel)(int)Math.Round(v.Value);
-            }
+                return (LogEventLevel) (int) Math.Round(v.Value);
             return LogEventLevel.Verbose;
         }
     }

@@ -1,32 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Translator.Lexer;
-using System.Linq;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Precedence
 {
     public partial class PrecedenceParser : IParser
     {
         private readonly PrecedenceGrammarHelper _helper;
-
-        private static readonly IList<GrammarReplaceRule> _grammar = new List<GrammarReplaceRule>();
         private readonly IObserver<LogEvent> _logObserver;
         private Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> _precedence;
-
-        public Logger Logger { get; set; }
-        public static IList<GrammarReplaceRule> Grammar => _grammar;
-
-        public event Action<Stack<Token>, PrecedenceRelation, ArraySegment<Token>> StackChanged; 
-        public event Action<Token, List<Token>> PRNChanged; 
-
-        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> Precedence
-        {
-            get { return _precedence ?? (_precedence = _helper.GetPrecedenceTable(_grammar)); }
-            set { _precedence = value; }
-        }
 
         static PrecedenceParser()
         {
@@ -46,17 +32,18 @@ namespace Parser.Precedence
             _helper = new PrecedenceGrammarHelper(Logger);
         }
 
-        private void ConfigureObservers(IObservable<LogEvent> obj)
+        public Logger Logger { get; set; }
+        public static IList<GrammarReplaceRule> Grammar { get; } = new List<GrammarReplaceRule>();
+
+        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> Precedence
         {
-            if (_logObserver != null)
-            {
-                obj.Subscribe(_logObserver);
-            }
+            get { return _precedence ?? (_precedence = _helper.GetPrecedenceTable(Grammar)); }
+            set { _precedence = value; }
         }
 
         public bool CheckSyntax(IEnumerable<Token> tokens)
         {
-            var precedenceTable = _helper.GetPrecedenceTable(_grammar);
+            var precedenceTable = _helper.GetPrecedenceTable(Grammar);
             var tokensList = tokens as List<Token> ?? tokens.ToList();
 
             var sharp = TokenEnum.Sharp;
@@ -66,23 +53,20 @@ namespace Parser.Precedence
             var array = tokensArray.Select(t =>
             {
                 if (t is TokenEnum)
-                {
                     return t;
-                }
-                var tEnum = _grammar.SelectMany(x => x.CompositeToken).Cast<TokenEnum>().FirstOrDefault(x => x.IsTheSame(t))?.Clone() as TokenEnum;
+                var tEnum =
+                    Grammar.SelectMany(x => x.CompositeToken)
+                        .Cast<TokenEnum>()
+                        .FirstOrDefault(x => x.IsTheSame(t))?.Clone() as TokenEnum;
 
                 if (tEnum != null)
-                {
                     tEnum.Line = t.Line;
-                }
 
                 return tEnum;
             }).ToArray();
 
             if (array.Any(x => x == null))
-            {
                 Logger.Error("Unknown token: {0}", tokensArray[Array.FindIndex(array, x => x == null)]);
-            }
 
             var stack = new Stack<Token>();
             stack.Push(TokenEnum.Sharp);
@@ -91,7 +75,6 @@ namespace Parser.Precedence
             var popped = new List<Token>();
             var prn = new List<Token>();
             while (stack.Peek().Type != TokenType.Axiom || array[i] != TokenEnum.Sharp)
-            {
                 try
                 {
                     var relation = precedenceTable[stack.Peek()][array[i]];
@@ -106,8 +89,9 @@ namespace Parser.Precedence
                         popped.Reverse();
                         try
                         {
-                            var toReplace = _grammar.First(x => x.CompositeToken.SequenceEqual(popped));
+                            var toReplace = Grammar.First(x => x.CompositeToken.SequenceEqual(popped));
                             toReplace.OnReplaceAction?.Invoke(popped, prn);
+                            PRNChanged?.Invoke(toReplace.Token, prn);
                             stack.Push(toReplace.Token);
                         }
                         catch (Exception exc)
@@ -118,21 +102,34 @@ namespace Parser.Precedence
                     }
                     else
                         //Copy the symbol to stack
+                    {
                         stack.Push(array[i++]);
+                    }
 
-                    OnStackChanged(stack, relation.Value, new ArraySegment<Token>(tokensArray, i, tokensArray.Length - i));
+                    OnStackChanged(stack, relation.Value,
+                        new ArraySegment<Token>(tokensArray, i, tokensArray.Length - i));
                 }
                 catch
                 {
-                    Logger.Error("There is no relation for a pair {0}-{1}, Line = {2}", stack.Peek(), array[i], array[i].Line);
+                    Logger.Error("There is no relation for a pair {0}-{1}, Line = {2}", stack.Peek(), array[i],
+                        array[i].Line);
                     return false;
                 }
-            }
 
             return true;
         }
 
-        protected virtual void OnStackChanged(Stack<Token> stack, PrecedenceRelation relation, ArraySegment<Token> inputTokens)
+        public event Action<Stack<Token>, PrecedenceRelation, ArraySegment<Token>> StackChanged;
+        public event Action<Token, List<Token>> PRNChanged;
+
+        private void ConfigureObservers(IObservable<LogEvent> obj)
+        {
+            if (_logObserver != null)
+                obj.Subscribe(_logObserver);
+        }
+
+        protected virtual void OnStackChanged(Stack<Token> stack, PrecedenceRelation relation,
+            ArraySegment<Token> inputTokens)
         {
             StackChanged?.Invoke(stack, relation, inputTokens);
         }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Translator.Lexer
+namespace Translator.LexerAnalyzer.Tokens
 {
     public abstract class Token : ICloneable, IEquatable<Token>
     {
@@ -13,6 +13,11 @@ namespace Translator.Lexer
 
         public int Line { get; set; }
 
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
         public bool Equals(Token other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -24,13 +29,13 @@ namespace Translator.Lexer
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Token) obj);
         }
 
         public override int GetHashCode()
         {
-            return (Substring != null ? Substring.GetHashCode() : 0);
+            return Substring != null ? Substring.GetHashCode() : 0;
         }
 
         public static bool operator ==(Token left, Token right)
@@ -42,18 +47,13 @@ namespace Translator.Lexer
         {
             return !Equals(left, right);
         }
-
-        public object Clone()
-        {
-            return MemberwiseClone();
-        }
     }
 
     public enum TokenType
     {
         Empty,
         Identifier,
-        Constant, 
+        Constant,
         Label,
         Keyword,
         Operator,

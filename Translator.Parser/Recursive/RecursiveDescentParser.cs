@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser
 {
@@ -22,19 +22,17 @@ namespace Parser
                 .CreateLogger();
         }
 
-        private void ConfigureObservers(IObservable<LogEvent> observable)
-        {
-            if (_logObserver != null)
-            {
-                observable.Subscribe(_logObserver);
-            }
-        }
-
         public Logger Logger { get; set; }
 
         public bool CheckSyntax(IEnumerable<Token> tokens)
         {
             return Root(tokens.GetEnumerator());
+        }
+
+        private void ConfigureObservers(IObservable<LogEvent> observable)
+        {
+            if (_logObserver != null)
+                observable.Subscribe(_logObserver);
         }
 
         private bool Root(IEnumerator<Token> tokens)
@@ -64,9 +62,7 @@ namespace Parser
                 .Iterative(seq => seq.NewLine(), seq => seq.Check(Operator), true);
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in list of operators on '{arg.Current}'");
-            }
             arg = s.ToCompare;
             return s.Result;
         }
@@ -128,9 +124,7 @@ namespace Parser
                 .Iterative(seq => seq.String("or"), seq => seq.Check(LogicalTerm));
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in logical expression on '{enumerator.Current}'");
-            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -143,9 +137,7 @@ namespace Parser
                 .Iterative(seq => seq.String("and"), seq => seq.Check(LogicalMultiplier));
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in logical term on '{enumerator.Current}'");
-            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -176,9 +168,7 @@ namespace Parser
                 .Iterative(seq => seq.String("-"), seq => seq.Check(Term));
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in expression on '{enumerator.Current}'");
-            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -192,9 +182,7 @@ namespace Parser
                 .Iterative(seq => seq.String("*"), seq => seq.Check(Multiplier));
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in term on '{enumerator.Current}'");
-            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -215,9 +203,7 @@ namespace Parser
                 .Iterative(seq => seq.String(","), seq => seq.Id());
 
             if (!s.Result)
-            {
                 TokensSequence.Logger.Error($"Error in id list on '{enumerator.Current}'");
-            }
             enumerator = s.ToCompare;
             return s.Result;
         }
@@ -231,9 +217,7 @@ namespace Parser
                 );
 
             if (!seq.Result)
-            {
                 TokensSequence.Logger.Error($"Error in definition list on '{arg.Current}'");
-            }
             arg = seq.ToCompare;
             return seq.Result;
         }

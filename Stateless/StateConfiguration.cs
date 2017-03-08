@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
     public partial class StateMachine<TState, TTrigger>
     {
         /// <summary>
-        /// The configuration for a single state value.
+        ///     The configuration for a single state value.
         /// </summary>
         public class StateConfiguration
         {
-            readonly StateRepresentation _representation;
-            readonly Func<TState, StateRepresentation> _lookup;
-            static readonly Func<bool> NoGuard = () => true;
+            private static readonly Func<bool> NoGuard = () => true;
+            private readonly Func<TState, StateRepresentation> _lookup;
+            private readonly StateRepresentation _representation;
 
             internal StateConfiguration(StateRepresentation representation, Func<TState, StateRepresentation> lookup)
             {
@@ -23,11 +20,13 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state.
+            ///     Accept the specified trigger and transition to the destination state.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationState">The state that the trigger will cause a
-            /// transition to.</param>
+            /// <param name="destinationState">
+            ///     The state that the trigger will cause a
+            ///     transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
             public StateConfiguration Permit(TTrigger trigger, TState destinationState)
             {
@@ -36,13 +35,17 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state.
+            ///     Accept the specified trigger and transition to the destination state.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationState">The state that the trigger will cause a
-            /// transition to.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="destinationState">
+            ///     The state that the trigger will cause a
+            ///     transition to.
+            /// </param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <returns>The reciever.</returns>
             public StateConfiguration PermitIf(TTrigger trigger, TState destinationState, Func<bool> guard)
             {
@@ -51,14 +54,14 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger, execute exit actions and re-execute entry actions.
-            /// Reentry behaves as though the configured state transitions to an identical sibling state.
+            ///     Accept the specified trigger, execute exit actions and re-execute entry actions.
+            ///     Reentry behaves as though the configured state transitions to an identical sibling state.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
             /// <returns>The reciever.</returns>
             /// <remarks>
-            /// Applies to the current state only. Will not re-execute superstate actions, or
-            /// cause actions to execute transitioning between super- and sub-states.
+            ///     Applies to the current state only. Will not re-execute superstate actions, or
+            ///     cause actions to execute transitioning between super- and sub-states.
             /// </remarks>
             public StateConfiguration PermitReentry(TTrigger trigger)
             {
@@ -66,23 +69,26 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger, execute exit actions and re-execute entry actions.
-            /// Reentry behaves as though the configured state transitions to an identical sibling state.
+            ///     Accept the specified trigger, execute exit actions and re-execute entry actions.
+            ///     Reentry behaves as though the configured state transitions to an identical sibling state.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <remarks>
-            /// Applies to the current state only. Will not re-execute superstate actions, or
-            /// cause actions to execute transitioning between super- and sub-states.
+            ///     Applies to the current state only. Will not re-execute superstate actions, or
+            ///     cause actions to execute transitioning between super- and sub-states.
             /// </remarks>
             public StateConfiguration PermitReentryIf(TTrigger trigger, Func<bool> guard)
             {
                 return InternalPermitIf(trigger, _representation.UnderlyingState, guard);
             }
+
             /// <summary>
-            /// Ignore the specified trigger when in the configured state.
+            ///     Ignore the specified trigger when in the configured state.
             /// </summary>
             /// <param name="trigger">The trigger to ignore.</param>
             /// <returns>The receiver.</returns>
@@ -92,12 +98,14 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Ignore the specified trigger when in the configured state, if the guard
-            /// returns true..
+            ///     Ignore the specified trigger when in the configured state, if the guard
+            ///     returns true..
             /// </summary>
             /// <param name="trigger">The trigger to ignore.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be ignored.</param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be ignored.
+            /// </param>
             /// <returns>The receiver.</returns>
             public StateConfiguration IgnoreIf(TTrigger trigger, Func<bool> guard)
             {
@@ -107,8 +115,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <param name="entryAction">Action to execute.</param>
             /// <returns>The receiver.</returns>
@@ -119,8 +127,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <returns>The receiver.</returns>
@@ -130,9 +138,10 @@ namespace Stateless
                 _representation.AddEntryAction((t, args) => entryAction(t));
                 return this;
             }
+
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <param name="entryAction">Action to execute.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
@@ -144,8 +153,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
@@ -158,8 +167,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
@@ -168,18 +177,19 @@ namespace Stateless
             public StateConfiguration OnEntryFrom<TArg0>(TriggerWithParameters<TArg0> trigger, Action<TArg0> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
-                return OnEntryFrom<TArg0>(trigger, (a0, t) => entryAction(a0));
+                return OnEntryFrom(trigger, (a0, t) => entryAction(a0));
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
             /// <returns>The receiver.</returns>
-            public StateConfiguration OnEntryFrom<TArg0>(TriggerWithParameters<TArg0> trigger, Action<TArg0, Transition> entryAction)
+            public StateConfiguration OnEntryFrom<TArg0>(TriggerWithParameters<TArg0> trigger,
+                Action<TArg0, Transition> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
                 Enforce.ArgumentNotNull(trigger, "trigger");
@@ -189,30 +199,32 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
             /// <returns>The receiver.</returns>
-            public StateConfiguration OnEntryFrom<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger, Action<TArg0, TArg1> entryAction)
+            public StateConfiguration OnEntryFrom<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger,
+                Action<TArg0, TArg1> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
-                return OnEntryFrom<TArg0, TArg1>(trigger, (a0, a1, t) => entryAction(a0, a1));
+                return OnEntryFrom(trigger, (a0, a1, t) => entryAction(a0, a1));
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
             /// <returns>The receiver.</returns>
-            public StateConfiguration OnEntryFrom<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger, Action<TArg0, TArg1, Transition> entryAction)
+            public StateConfiguration OnEntryFrom<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger,
+                Action<TArg0, TArg1, Transition> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
                 Enforce.ArgumentNotNull(trigger, "trigger");
@@ -223,8 +235,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
@@ -232,15 +244,16 @@ namespace Stateless
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
             /// <returns>The receiver.</returns>
-            public StateConfiguration OnEntryFrom<TArg0, TArg1, TArg2>(TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Action<TArg0, TArg1, TArg2> entryAction)
+            public StateConfiguration OnEntryFrom<TArg0, TArg1, TArg2>(
+                TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Action<TArg0, TArg1, TArg2> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
-                return OnEntryFrom<TArg0, TArg1, TArg2>(trigger, (a0, a1, a2, t) => entryAction(a0, a1, a2));
+                return OnEntryFrom(trigger, (a0, a1, a2, t) => entryAction(a0, a1, a2));
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning into
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning into
+            ///     the configured state.
             /// </summary>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
@@ -248,7 +261,8 @@ namespace Stateless
             /// <param name="entryAction">Action to execute, providing details of the transition.</param>
             /// <param name="trigger">The trigger by which the state must be entered in order for the action to execute.</param>
             /// <returns>The receiver.</returns>
-            public StateConfiguration OnEntryFrom<TArg0, TArg1, TArg2>(TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Action<TArg0, TArg1, TArg2, Transition> entryAction)
+            public StateConfiguration OnEntryFrom<TArg0, TArg1, TArg2>(
+                TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Action<TArg0, TArg1, TArg2, Transition> entryAction)
             {
                 Enforce.ArgumentNotNull(entryAction, "entryAction");
                 Enforce.ArgumentNotNull(trigger, "trigger");
@@ -260,8 +274,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning from
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning from
+            ///     the configured state.
             /// </summary>
             /// <param name="exitAction">Action to execute.</param>
             /// <returns>The receiver.</returns>
@@ -272,8 +286,8 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Specify an action that will execute when transitioning from
-            /// the configured state.
+            ///     Specify an action that will execute when transitioning from
+            ///     the configured state.
             /// </summary>
             /// <param name="exitAction">Action to execute, providing details of the transition.</param>
             /// <returns>The receiver.</returns>
@@ -285,14 +299,14 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Sets the superstate that the configured state is a substate of.
+            ///     Sets the superstate that the configured state is a substate of.
             /// </summary>
             /// <remarks>
-            /// Substates inherit the allowed transitions of their superstate.
-            /// When entering directly into a substate from outside of the superstate,
-            /// entry actions for the superstate are executed.
-            /// Likewise when leaving from the substate to outside the supserstate,
-            /// exit actions for the superstate will execute.
+            ///     Substates inherit the allowed transitions of their superstate.
+            ///     When entering directly into a substate from outside of the superstate,
+            ///     entry actions for the superstate are executed.
+            ///     Likewise when leaving from the substate to outside the supserstate,
+            ///     exit actions for the superstate will execute.
             /// </remarks>
             /// <param name="superstate">The superstate.</param>
             /// <returns>The receiver.</returns>
@@ -305,12 +319,14 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
             public StateConfiguration PermitDynamic(TTrigger trigger, Func<TState> destinationStateSelector)
             {
@@ -318,79 +334,99 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
-            public StateConfiguration PermitDynamic<TArg0>(TriggerWithParameters<TArg0> trigger, Func<TArg0, TState> destinationStateSelector)
+            public StateConfiguration PermitDynamic<TArg0>(TriggerWithParameters<TArg0> trigger,
+                Func<TArg0, TState> destinationStateSelector)
             {
                 return PermitDynamicIf(trigger, destinationStateSelector, NoGuard);
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
-            public StateConfiguration PermitDynamic<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger, Func<TArg0, TArg1, TState> destinationStateSelector)
+            public StateConfiguration PermitDynamic<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger,
+                Func<TArg0, TArg1, TState> destinationStateSelector)
             {
                 return PermitDynamicIf(trigger, destinationStateSelector, NoGuard);
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             /// <typeparam name="TArg2">Type of the third trigger argument.</typeparam>
-            public StateConfiguration PermitDynamic<TArg0, TArg1, TArg2>(TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Func<TArg0, TArg1, TArg2, TState> destinationStateSelector)
+            public StateConfiguration PermitDynamic<TArg0, TArg1, TArg2>(
+                TriggerWithParameters<TArg0, TArg1, TArg2> trigger,
+                Func<TArg0, TArg1, TArg2, TState> destinationStateSelector)
             {
                 return PermitDynamicIf(trigger, destinationStateSelector, NoGuard);
             }
 
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <returns>The reciever.</returns>
-            public StateConfiguration PermitDynamicIf(TTrigger trigger, Func<TState> destinationStateSelector, Func<bool> guard)
+            public StateConfiguration PermitDynamicIf(TTrigger trigger, Func<TState> destinationStateSelector,
+                Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(destinationStateSelector, "destinationStateSelector");
                 return InternalPermitDynamicIf(trigger, args => destinationStateSelector(), guard);
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
-            public StateConfiguration PermitDynamicIf<TArg0>(TriggerWithParameters<TArg0> trigger, Func<TArg0, TState> destinationStateSelector, Func<bool> guard)
+            public StateConfiguration PermitDynamicIf<TArg0>(TriggerWithParameters<TArg0> trigger,
+                Func<TArg0, TState> destinationStateSelector, Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(trigger, "trigger");
                 Enforce.ArgumentNotNull(destinationStateSelector, "destinationStateSelector");
@@ -402,18 +438,23 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <returns>The reciever.</returns>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
-            public StateConfiguration PermitDynamicIf<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger, Func<TArg0, TArg1, TState> destinationStateSelector, Func<bool> guard)
+            public StateConfiguration PermitDynamicIf<TArg0, TArg1>(TriggerWithParameters<TArg0, TArg1> trigger,
+                Func<TArg0, TArg1, TState> destinationStateSelector, Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(trigger, "trigger");
                 Enforce.ArgumentNotNull(destinationStateSelector, "destinationStateSelector");
@@ -426,19 +467,25 @@ namespace Stateless
             }
 
             /// <summary>
-            /// Accept the specified trigger and transition to the destination state, calculated
-            /// dynamically by the supplied function.
+            ///     Accept the specified trigger and transition to the destination state, calculated
+            ///     dynamically by the supplied function.
             /// </summary>
             /// <param name="trigger">The accepted trigger.</param>
-            /// <param name="destinationStateSelector">Function to calculate the state 
-            /// that the trigger will cause a transition to.</param>
+            /// <param name="destinationStateSelector">
+            ///     Function to calculate the state
+            ///     that the trigger will cause a transition to.
+            /// </param>
             /// <returns>The reciever.</returns>
-            /// <param name="guard">Function that must return true in order for the
-            /// trigger to be accepted.</param>
+            /// <param name="guard">
+            ///     Function that must return true in order for the
+            ///     trigger to be accepted.
+            /// </param>
             /// <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             /// <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             /// <typeparam name="TArg2">Type of the third trigger argument.</typeparam>
-            public StateConfiguration PermitDynamicIf<TArg0, TArg1, TArg2>(TriggerWithParameters<TArg0, TArg1, TArg2> trigger, Func<TArg0, TArg1, TArg2, TState> destinationStateSelector, Func<bool> guard)
+            public StateConfiguration PermitDynamicIf<TArg0, TArg1, TArg2>(
+                TriggerWithParameters<TArg0, TArg1, TArg2> trigger,
+                Func<TArg0, TArg1, TArg2, TState> destinationStateSelector, Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(trigger, "trigger");
                 Enforce.ArgumentNotNull(destinationStateSelector, "destinationStateSelector");
@@ -451,32 +498,32 @@ namespace Stateless
                     guard);
             }
 
-            void EnforceNotIdentityTransition(TState destination)
+            private void EnforceNotIdentityTransition(TState destination)
             {
                 if (destination.Equals(_representation.UnderlyingState))
-                {
                     throw new ArgumentException(StateConfigurationResources.SelfTransitionsEitherIgnoredOrReentrant);
-                }
             }
 
-            StateConfiguration InternalPermit(TTrigger trigger, TState destinationState)
+            private StateConfiguration InternalPermit(TTrigger trigger, TState destinationState)
             {
                 return InternalPermitIf(trigger, destinationState, () => true);
             }
 
-            StateConfiguration InternalPermitIf(TTrigger trigger, TState destinationState, Func<bool> guard)
+            private StateConfiguration InternalPermitIf(TTrigger trigger, TState destinationState, Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(guard, "guard");
                 _representation.AddTriggerBehaviour(new TransitioningTriggerBehaviour(trigger, destinationState, guard));
-                return this;                
+                return this;
             }
 
-            StateConfiguration InternalPermitDynamic(TTrigger trigger, Func<object[], TState> destinationStateSelector)
+            private StateConfiguration InternalPermitDynamic(TTrigger trigger,
+                Func<object[], TState> destinationStateSelector)
             {
                 return InternalPermitDynamicIf(trigger, destinationStateSelector, NoGuard);
             }
 
-            StateConfiguration InternalPermitDynamicIf(TTrigger trigger, Func<object[], TState> destinationStateSelector, Func<bool> guard)
+            private StateConfiguration InternalPermitDynamicIf(TTrigger trigger,
+                Func<object[], TState> destinationStateSelector, Func<bool> guard)
             {
                 Enforce.ArgumentNotNull(destinationStateSelector, "destinationStateSelector");
                 Enforce.ArgumentNotNull(guard, "guard");
@@ -485,7 +532,6 @@ namespace Stateless
             }
 
             /// <summary>
-            /// 
             /// </summary>
             /// <param name="action"></param>
             /// <returns></returns>

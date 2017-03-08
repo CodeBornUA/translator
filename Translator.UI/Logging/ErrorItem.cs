@@ -1,6 +1,6 @@
 ﻿using Serilog.Events;
 
-namespace Translator.LexerAnalyzer
+namespace Translator.UI
 {
     public class ErrorItem
     {
@@ -13,9 +13,5 @@ namespace Translator.LexerAnalyzer
         public string Message { get; set; }
 
         public LogEventLevel Type { get; set; }
-
-        public int Line { get; set; }
-
-        public int Position { get; set; }
     }
 }

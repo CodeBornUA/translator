@@ -2,17 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Serilog.Core;
-using Translator.Lexer;
 using Serilog;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Precedence
 {
     public class PrecedenceGrammarHelper
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public PrecedenceGrammarHelper(ILogger logger)
         {
@@ -22,27 +19,20 @@ namespace Parser.Precedence
         public IEnumerable<Token> FirstPlus(IList<GrammarReplaceRule> grammar, Token token)
         {
             var list = new List<Token>();
+
             void Impl(Token tokenIn)
             {
                 if (tokenIn == null || list.Contains(tokenIn))
-                {
                     return;
-                }
 
                 list.Add(tokenIn);
                 if (tokenIn.Type == TokenType.Nonterminal)
-                {
                     foreach (var kv in grammar.Where(_ => _.Token == tokenIn))
-                    {
                         Impl(kv.CompositeToken.FirstOrDefault());
-                    }
-                }
             }
 
             foreach (var source in grammar.Where(x => x.Token == token))
-            {
                 Impl(source.CompositeToken.First());
-            }
 
             return list.Distinct();
         }
@@ -50,20 +40,17 @@ namespace Parser.Precedence
         private IEnumerable<Token> First(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
         {
             var list = new List<Token>();
+
             void Impl(Token tokenIn)
             {
                 if (tokenIn == null || list.Contains(tokenIn))
-                {
                     return;
-                }
 
                 list.Add(tokenIn);
             }
 
             foreach (var source in grammar.Where(x => x.Key == token))
-            {
                 Impl(source.Value.First());
-            }
 
             return list.Distinct();
         }
@@ -71,39 +58,34 @@ namespace Parser.Precedence
         public IEnumerable<Token> LastPlus(IList<GrammarReplaceRule> grammar, Token token)
         {
             var list = new List<Token>();
+
             void Impl(Token tokenIn)
             {
                 if (tokenIn == null || list.Contains(tokenIn))
-                {
                     return;
-                }
 
                 list.Add(tokenIn);
                 if (tokenIn.Type == TokenType.Nonterminal)
-                {
                     foreach (var kv in grammar.Where(_ => _.Token == tokenIn))
-                    {
                         Impl(kv.CompositeToken.LastOrDefault());
-                    }
-                }
             }
 
             foreach (var source in grammar.Where(x => x.Token == token))
-            {
                 Impl(source.CompositeToken.Last());
-            }
 
             return list.Distinct();
         }
 
-        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> GetPrecedenceTable(IList<GrammarReplaceRule> grammar)
+        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> GetPrecedenceTable(
+            IList<GrammarReplaceRule> grammar)
         {
             var dict = new Dictionary<Token, Dictionary<Token, PrecedenceRelation?>>();
 
             //Equal
             foreach (var token in grammar)
             {
-                for (var index = 0; index < token.CompositeToken.Count - 1; index++) //From first to before last elements
+                for (var index = 0; index < token.CompositeToken.Count - 1; index++)
+                    //From first to before last elements
                 {
                     var tokenInner = token.CompositeToken[index];
                     if (index < token.CompositeToken.Count)
@@ -114,92 +96,93 @@ namespace Parser.Precedence
                 }
 
                 if (!dict.ContainsKey(token.CompositeToken[token.CompositeToken.Count - 1]))
-                {
-                    dict[token.CompositeToken[token.CompositeToken.Count - 1]] = new Dictionary<Token, PrecedenceRelation?>();
-                }
+                    dict[token.CompositeToken[token.CompositeToken.Count - 1]] =
+                        new Dictionary<Token, PrecedenceRelation?>();
             }
 
             //>
-            foreach (var row in dict.Where(k => k.Key.Type == TokenType.Nonterminal).ToList()) //All relations where first token is non-terminal
+            foreach (var row in dict.Where(k => k.Key.Type == TokenType.Nonterminal).ToList())
+                //All relations where first token is non-terminal
             {
                 var leftToken = row.Key;
-                foreach (var relation in row.Value.Where(r => r.Key.Type != TokenType.Nonterminal && r.Value == PrecedenceRelation.Equal)) //= relations
+                foreach (
+                        var relation in
+                        row.Value.Where(r => r.Key.Type != TokenType.Nonterminal && r.Value == PrecedenceRelation.Equal))
+                    //= relations
                 {
                     var rightToken = relation.Key;
                     var lastPlus = LastPlus(grammar, leftToken); //Last+ of left non-terminal
                     foreach (var token in lastPlus)
-                    {
-                        //Last+ > rightToken
                         SetRelation(dict, token, rightToken, PrecedenceRelation.More);
-                    }
                 }
             }
 
             //<
-            foreach (var row in dict.Where(k => k.Value.Any(c => c.Key.Type == TokenType.Nonterminal)).ToList()) //All rows that contain relations where last token is non-terminal
+            foreach (var row in dict.Where(k => k.Value.Any(c => c.Key.Type == TokenType.Nonterminal)).ToList())
+                //All rows that contain relations where last token is non-terminal
             {
                 var leftToken = row.Key;
-                foreach (var relation in row.Value.Where(r => row.Key.Type != TokenType.Nonterminal && r.Key.Type == TokenType.Nonterminal && r.Value == PrecedenceRelation.Equal).ToList()) //= relations
+                foreach (
+                    var relation in
+                    row.Value.Where(
+                        r =>
+                            row.Key.Type != TokenType.Nonterminal && r.Key.Type == TokenType.Nonterminal &&
+                            r.Value == PrecedenceRelation.Equal).ToList()) //= relations
                 {
                     var rightToken = relation.Key;
                     var firstPlus = FirstPlus(grammar, rightToken); //First+ of right non-terminal
                     foreach (var token in firstPlus)
-                    {
-                        //leftToken < FIRST+
                         SetRelation(dict, leftToken, token, PrecedenceRelation.Less);
-                    }
                 }
             }
 
             //Two nonterminals
-            foreach (var row in dict.Where(k => k.Value.Any(c => c.Key.Type == TokenType.Nonterminal)).ToList()) //All rows that contain relations where last token is non-terminal
+            foreach (var row in dict.Where(k => k.Value.Any(c => c.Key.Type == TokenType.Nonterminal)).ToList())
+                //All rows that contain relations where last token is non-terminal
             {
                 var leftToken = row.Key;
-                foreach (var relation in row.Value.Where(r => row.Key.Type == TokenType.Nonterminal && r.Key.Type == TokenType.Nonterminal && r.Value == PrecedenceRelation.Equal).ToList()) //= relations
+                foreach (
+                    var relation in
+                    row.Value.Where(
+                        r =>
+                            row.Key.Type == TokenType.Nonterminal && r.Key.Type == TokenType.Nonterminal &&
+                            r.Value == PrecedenceRelation.Equal).ToList()) //= relations
                 {
                     var rightToken = relation.Key;
                     var lastPlus = LastPlus(grammar, leftToken).ToList();
                     var firstPlus = FirstPlus(grammar, rightToken).ToList(); //First+ of right non-terminal
                     foreach (var token in lastPlus)
-                    {
-                        foreach (var token2 in firstPlus)
-                        {
-                            //LAST+(LEFT) > FIRST+(RIGHT)
-                            SetRelation(dict, token, token2, PrecedenceRelation.More);
-                        }
-                    }
+                    foreach (var token2 in firstPlus)
+                        SetRelation(dict, token, token2, PrecedenceRelation.More);
 
                     //LEFT < FIRST(RIGHT)
                     foreach (var token2 in firstPlus)
-                    {
                         SetRelation(dict, leftToken, token2, PrecedenceRelation.Less);
-                    }
                 }
             }
 
             foreach (var kv in dict)
-            {
                 dict[kv.Key][PrecedenceParser.TokenEnum.Sharp] = PrecedenceRelation.More;
-            }
-            dict.Add(PrecedenceParser.TokenEnum.Sharp, dict.Keys.ToDictionary(x => x, x => (PrecedenceRelation?)PrecedenceRelation.Less));
+            dict.Add(PrecedenceParser.TokenEnum.Sharp,
+                dict.Keys.ToDictionary(x => x, x => (PrecedenceRelation?) PrecedenceRelation.Less));
 
 
             return dict;
         }
 
-        private void SetRelation(Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> relationMatrix, 
-            Token leftToken, 
-            Token rightToken, 
+        private void SetRelation(Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> relationMatrix,
+            Token leftToken,
+            Token rightToken,
             PrecedenceRelation precedenceRelation)
         {
             if (!relationMatrix.ContainsKey(leftToken))
-            {
                 relationMatrix[leftToken] = new Dictionary<Token, PrecedenceRelation?>();
-            }
 
-            if (relationMatrix[leftToken].ContainsKey(rightToken) && precedenceRelation != relationMatrix[leftToken][rightToken])
+            if (relationMatrix[leftToken].ContainsKey(rightToken) &&
+                precedenceRelation != relationMatrix[leftToken][rightToken])
             {
-                _logger.Error("Conflict: {0} {1} (was {2}, attempted {3})", leftToken, rightToken, relationMatrix[leftToken][rightToken],  precedenceRelation);
+                _logger.Error("Conflict: {0} {1} (was {2}, attempted {3})", leftToken, rightToken,
+                    relationMatrix[leftToken][rightToken], precedenceRelation);
                 throw new InvalidOperationException("There is an another relation in this cell already");
             }
             relationMatrix[leftToken][rightToken] = precedenceRelation;
@@ -215,7 +198,10 @@ namespace Parser.Precedence
 
     public class CompositeToken : Token, IList<Token>
     {
-        private List<Token> _tokens = new List<Token>();
+        private readonly List<Token> _tokens = new List<Token>();
+
+        public override TokenType Type { get; set; } = TokenType.Composite;
+
         public IEnumerator<Token> GetEnumerator()
         {
             return _tokens.GetEnumerator();
@@ -281,7 +267,5 @@ namespace Parser.Precedence
             get { return _tokens[index]; }
             set { _tokens[index] = value; }
         }
-
-        public override TokenType Type { get; set; } = TokenType.Composite;
     }
 }

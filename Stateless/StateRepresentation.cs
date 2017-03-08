@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
@@ -9,22 +8,41 @@ namespace Stateless
     {
         internal class StateRepresentation
         {
-            readonly TState _state;
+            private readonly ICollection<Action<Transition, object[]>> _entryActions =
+                new List<Action<Transition, object[]>>();
 
-            readonly IDictionary<TTrigger, ICollection<TriggerBehaviour>> _triggerBehaviours =
+            private readonly ICollection<Action<Transition>> _exitActions = new List<Action<Transition>>();
+
+            private readonly ICollection<StateRepresentation> _substates = new List<StateRepresentation>();
+
+            private readonly IDictionary<TTrigger, ICollection<TriggerBehaviour>> _triggerBehaviours =
                 new Dictionary<TTrigger, ICollection<TriggerBehaviour>>();
-
-            readonly ICollection<Action<Transition, object[]>> _entryActions = new List<Action<Transition, object[]>>();
-            readonly ICollection<Action<Transition>> _exitActions = new List<Action<Transition>>();
-
-            StateRepresentation _superstate; // null
-
-            readonly ICollection<StateRepresentation> _substates = new List<StateRepresentation>();
 
             public StateRepresentation(TState state)
             {
-                _state = state;
+                UnderlyingState = state;
             }
+
+            public StateRepresentation Superstate { get; set; }
+
+            public TState UnderlyingState { get; }
+
+            public IEnumerable<TTrigger> PermittedTriggers
+            {
+                get
+                {
+                    var result = _triggerBehaviours
+                        .Where(t => t.Value.Any(a => a.IsGuardConditionMet))
+                        .Select(t => t.Key);
+
+                    if (Superstate != null)
+                        result = result.Union(Superstate.PermittedTriggers);
+
+                    return result.ToArray();
+                }
+            }
+
+            public Action<TState, TTrigger> OnUnhandled { get; set; }
 
             public bool CanHandle(TTrigger trigger)
             {
@@ -34,11 +52,11 @@ namespace Stateless
 
             public bool TryFindHandler(TTrigger trigger, out TriggerBehaviour handler)
             {
-                return (TryFindLocalHandler(trigger, out handler) ||
-                    (Superstate != null && Superstate.TryFindHandler(trigger, out handler)));
+                return TryFindLocalHandler(trigger, out handler) ||
+                       Superstate != null && Superstate.TryFindHandler(trigger, out handler);
             }
-            
-            bool TryFindLocalHandler(TTrigger trigger, out TriggerBehaviour handler)
+
+            private bool TryFindLocalHandler(TTrigger trigger, out TriggerBehaviour handler)
             {
                 ICollection<TriggerBehaviour> possible;
                 if (!_triggerBehaviours.TryGetValue(trigger, out possible))
@@ -52,7 +70,7 @@ namespace Stateless
                 if (actual.Count() > 1)
                     throw new InvalidOperationException(
                         string.Format(StateRepresentationResources.MultipleTransitionsPermitted,
-                        trigger, _state));
+                            trigger, UnderlyingState));
 
                 handler = actual.FirstOrDefault();
                 return handler != null;
@@ -88,8 +106,8 @@ namespace Stateless
                 }
                 else if (!Includes(transition.Source))
                 {
-                    if (_superstate != null)
-                        _superstate.Enter(transition, entryArgs);
+                    if (Superstate != null)
+                        Superstate.Enter(transition, entryArgs);
 
                     ExecuteEntryActions(transition, entryArgs);
                 }
@@ -106,12 +124,12 @@ namespace Stateless
                 else if (!Includes(transition.Destination))
                 {
                     ExecuteExitActions(transition);
-                    if (_superstate != null)
-                        _superstate.Exit(transition);
+                    if (Superstate != null)
+                        Superstate.Exit(transition);
                 }
             }
 
-            void ExecuteEntryActions(Transition transition, object[] entryArgs)
+            private void ExecuteEntryActions(Transition transition, object[] entryArgs)
             {
                 Enforce.ArgumentNotNull(transition, "transtion");
                 Enforce.ArgumentNotNull(entryArgs, "entryArgs");
@@ -119,7 +137,7 @@ namespace Stateless
                     action(transition, entryArgs);
             }
 
-            void ExecuteExitActions(Transition transition)
+            private void ExecuteExitActions(Transition transition)
             {
                 Enforce.ArgumentNotNull(transition, "transtion");
                 foreach (var action in _exitActions)
@@ -137,26 +155,6 @@ namespace Stateless
                 allowed.Add(triggerBehaviour);
             }
 
-            public StateRepresentation Superstate
-            {
-                get
-                {
-                    return _superstate;
-                }
-                set
-                {
-                    _superstate = value;
-                }
-            }
-
-            public TState UnderlyingState
-            {
-                get
-                {
-                    return _state;
-                }
-            }
-
             public void AddSubstate(StateRepresentation substate)
             {
                 Enforce.ArgumentNotNull(substate, "substate");
@@ -165,32 +163,15 @@ namespace Stateless
 
             public bool Includes(TState state)
             {
-                return _state.Equals(state) || _substates.Any(s => s.Includes(state));
+                return UnderlyingState.Equals(state) || _substates.Any(s => s.Includes(state));
             }
 
             public bool IsIncludedIn(TState state)
             {
                 return
-                    _state.Equals(state) ||
-                    (_superstate != null && _superstate.IsIncludedIn(state));
+                    UnderlyingState.Equals(state) ||
+                    Superstate != null && Superstate.IsIncludedIn(state);
             }
-
-            public IEnumerable<TTrigger> PermittedTriggers
-            {
-                get
-                {
-                    var result = _triggerBehaviours
-                        .Where(t => t.Value.Any(a => a.IsGuardConditionMet))
-                        .Select(t => t.Key);
-
-                    if (Superstate != null)
-                        result = result.Union(Superstate.PermittedTriggers);
-
-                    return result.ToArray();
-                }
-            }
-
-            public Action<TState, TTrigger> OnUnhandled { get; set; }
         }
     }
 }

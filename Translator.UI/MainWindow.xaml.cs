@@ -6,39 +6,36 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using Autofac;
 using Parser;
-using Serilog.Events;
 using Parser.Precedence;
-using Translator.Lexer;
+using Serilog.Events;
+using Translator.LexerAnalyzer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Translator.UI
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : INotifyPropertyChanged
     {
-        private readonly Lexer.Lexer _lexer;
-        private readonly IParser _parser;
-        private MainWindowViewModel _viewModel = new MainWindowViewModel();
+        private readonly ILifetimeScope _scope = (Application.Current as App)?.ServiceProvider;
 
-        public MainWindowViewModel ViewModel
-        {
-            get { return _viewModel; }
-            set
-            {
-                _viewModel = value;
-                OnPropertyChanged();
-            }
-        }
+        private readonly Lexer _lexer;
+        private readonly IParser _parser;
 
 
         public MainWindow()
         {
-            _lexer = new Lexer.Lexer(new LogObserver(_viewModel));
-            _parser = new PrecedenceParser(new LogObserver(_viewModel));
+            _lexer = _scope.Resolve<Lexer>();
+            _parser = _scope.Resolve<IParser>();
+            ViewModel = _scope.Resolve<MainWindowViewModel>();
+
             InitializeComponent();
         }
+
+        public MainWindowViewModel ViewModel { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -66,6 +63,7 @@ namespace Translator.UI
                 {
                     if (token == PrecedenceParser.TokenEnum.Statement)
                     {
+                        MessageBox.Show($"PRN: {string.Join(", ", prn)}");
                         prn.Clear();
                     }
                 };
@@ -89,9 +87,10 @@ namespace Translator.UI
             }
         }
 
-        private void MainWindow_StackChanged(Stack<Token> stack, PrecedenceRelation relation, ArraySegment<Token> segment)
+        private void MainWindow_StackChanged(Stack<Token> stack, PrecedenceRelation relation,
+            ArraySegment<Token> segment)
         {
-            ViewModel.PrecedenceParsingSteps.Add(new PrecedenceParsingStep()
+            ViewModel.PrecedenceParsingSteps.Add(new PrecedenceParsingStep
             {
                 StackContent = stack.Aggregate(string.Empty, (agr, cur) => string.Join(" ", cur.Substring, agr)).Trim(),
                 InputTokens = segment.Aggregate(string.Empty, (agr, cur) => string.Join(" ", agr, cur.Substring)).Trim(),
@@ -109,44 +108,6 @@ namespace Translator.UI
                 column.MinWidth = column.ActualWidth;
                 column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
             }
-        }
-    }
-
-    internal class LogObserver : IObserver<LogEvent>
-    {
-        private readonly MainWindowViewModel _view;
-
-        public LogObserver(MainWindowViewModel view)
-        {
-            _view = view;
-        }
-
-        public void OnCompleted()
-        {
-
-        }
-
-        public void OnError(Exception error)
-        {
-
-        }
-
-        public void OnNext(LogEvent value)
-        {
-            _view.LogMessages.Add(new ErrorItem(value));
-        }
-    }
-
-    public class ErrorItem
-    {
-        public string Message { get; set; }
-
-        public LogEventLevel Type { get; set; }
-
-        public ErrorItem(LogEvent e)
-        {
-            Message = e.RenderMessage();
-            Type = e.Level;
         }
     }
 }

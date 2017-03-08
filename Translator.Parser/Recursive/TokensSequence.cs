@@ -4,14 +4,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Serilog.Core;
 using Serilog.Events;
-using Translator.Lexer;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser
 {
     public class TokensSequence : Collection<Token>
     {
-        private bool _success = true;
+        public delegate bool RefEnumeratorBoolFunc(ref IEnumerator<Token> enumerator);
+
         private IEnumerator<Token> _toCompare;
 
         private TokensSequence(IEnumerator<Token> toCompare)
@@ -19,11 +19,13 @@ namespace Parser
             _toCompare = toCompare;
         }
 
-        public bool Result => _success;
+        public bool Result { get; private set; } = true;
 
         public IEnumerator<Token> ToCompare => _toCompare;
 
         public static Logger Logger { get; set; }
+
+        public bool TryMode { get; set; }
 
         public static TokensSequence Init(ref IEnumerator<Token> toCompare)
         {
@@ -32,23 +34,23 @@ namespace Parser
 
         public TokensSequence String(string checkText)
         {
-            Log(LogEventLevel.Information, $"Looking for the {(checkText == "\r\n" ? "new line" : $"string {checkText}")}");
+            Log(LogEventLevel.Information,
+                $"Looking for the {(checkText == "\r\n" ? "new line" : $"string {checkText}")}");
             Evaluate(token => token is StringToken && (token as StringToken).Substring == checkText);
             return this;
         }
 
         private bool Evaluate(Func<Token, bool> func)
         {
-            if (!_success)
-            {
+            if (!Result)
                 return false;
-            }
 
             var hasNext = _toCompare.MoveNext();
             if (!hasNext)
             {
-                Log(TryMode ? LogEventLevel.Information : LogEventLevel.Error, "Sequence doesn't contain tokens anymore", _toCompare.Current);
-                _success = false;
+                Log(TryMode ? LogEventLevel.Information : LogEventLevel.Error, "Sequence doesn't contain tokens anymore",
+                    _toCompare.Current);
+                Result = false;
                 return false;
             }
 
@@ -56,31 +58,25 @@ namespace Parser
             if (current == null)
             {
                 Log(LogEventLevel.Verbose, "Token is null while evaluating");
-                _success = false;
+                Result = false;
                 return false;
             }
 
             var newSuccess = func(current);
-            if (_success && !newSuccess)
-            {
+            if (Result && !newSuccess)
                 if (TryMode)
-                {
                     Log(LogEventLevel.Verbose, "Evaluate try failed: {0}", _toCompare.Current);
-                }
                 else
-                {
                     Log(LogEventLevel.Error, "Evaluate failed: {0}", _toCompare.Current);
-                }
-            }
 
-            _success = _success && newSuccess;
-            return _success;
+            Result = Result && newSuccess;
+            return Result;
         }
 
-        public TokensSequence Id(Func<Identifier, bool> filterFunc = null)
+        public TokensSequence Id(Func<IdentifierToken, bool> filterFunc = null)
         {
             Log(LogEventLevel.Verbose, "Looking for an identifier");
-            Evaluate(token => token is Identifier && (filterFunc?.Invoke((Identifier) token) ?? true));
+            Evaluate(token => token is IdentifierToken && (filterFunc?.Invoke((IdentifierToken) token) ?? true));
             return this;
         }
 
@@ -96,16 +92,15 @@ namespace Parser
             return String("\r\n");
         }
 
-        public delegate bool RefEnumeratorBoolFunc(ref IEnumerator<Token> enumerator);
-
         public TokensSequence Check(RefEnumeratorBoolFunc checkFunc)
         {
-            _success = _success && checkFunc(ref _toCompare);
+            Result = Result && checkFunc(ref _toCompare);
 
             return this;
         }
 
-        public TokensSequence Iterative(Func<TokensSequence, TokensSequence> func, Func<TokensSequence, TokensSequence> restFunc, bool tryMode = true)
+        public TokensSequence Iterative(Func<TokensSequence, TokensSequence> func,
+            Func<TokensSequence, TokensSequence> restFunc, bool tryMode = true)
         {
             bool funcSuccess;
             do
@@ -134,9 +129,10 @@ namespace Parser
             return this;
         }
 
-        public static bool AnyOf(ref IEnumerator<Token> enumerator, bool tryMode = true, params Func<TokensSequence, TokensSequence>[] seqs)
+        public static bool AnyOf(ref IEnumerator<Token> enumerator, bool tryMode = true,
+            params Func<TokensSequence, TokensSequence>[] seqs)
         {
-            IEnumerator<Token> copy = enumerator;
+            var copy = enumerator;
             var any = seqs.Any(seq =>
             {
                 var clone = copy.Clone();
@@ -160,12 +156,10 @@ namespace Parser
             return false;
         }
 
-        public bool TryMode { get; set; }
-
         public TokensSequence Const()
         {
             Logger.Verbose("Looking for a constant");
-            Evaluate(token => token is Constant<float>);
+            Evaluate(token => token is ConstantToken<float>);
             return this;
         }
 
@@ -178,7 +172,7 @@ namespace Parser
 
         public TokensSequence AnyFrom(params Func<TokensSequence, TokensSequence>[] seqs)
         {
-            IEnumerator<Token> copy = _toCompare;
+            var copy = _toCompare;
             var any = seqs.Select(seq =>
             {
                 var clone = copy.Clone();

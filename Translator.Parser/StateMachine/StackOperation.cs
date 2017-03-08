@@ -4,12 +4,12 @@ namespace Parser
 {
     public abstract class StackOperation : IOperation
     {
-        protected Stack<int> StateStack { get; set; }
-
         protected StackOperation(Stack<int> stateStack)
         {
             StateStack = stateStack;
         }
+
+        protected Stack<int> StateStack { get; set; }
 
         public abstract void Do();
     }

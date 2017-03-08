@@ -2,17 +2,17 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Precedence;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace ParserTests.Precedence
 {
-    [TestClass()]
+    [TestClass]
     public class PrecedenceGrammarHelperTests
     {
         [TestMethod]
         public void FirstPlusTest()
         {
-            var innerComposite = new CompositeToken()
+            var innerComposite = new CompositeToken
             {
                 Substring = "Inner"
             };
@@ -20,17 +20,17 @@ namespace ParserTests.Precedence
             stringToken.Append('A');
             innerComposite.Add(stringToken);
 
-            var composite = new CompositeToken()
+            var composite = new CompositeToken
             {
                 innerComposite,
-                new StringToken()
+                new StringToken
                 {
                     Substring = "String"
                 }
             };
 
             var helper = new PrecedenceGrammarHelper(null);
-            var firstPlus = helper.FirstPlus(new List<GrammarReplaceRule>()
+            var firstPlus = helper.FirstPlus(new List<GrammarReplaceRule>
             {
                 new GrammarReplaceRule(PrecedenceParser.TokenEnum.Program, composite)
             }, PrecedenceParser.TokenEnum.Program).ToList();

@@ -1,16 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Parser.Precedence;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Translator.UI
 {
     /// <summary>
-    /// Логика взаимодействия для PrecedenceTable.xaml
+    ///     Логика взаимодействия для PrecedenceTable.xaml
     /// </summary>
     public partial class PrecedenceTable : Window
     {
@@ -19,7 +18,8 @@ namespace Translator.UI
             InitializeComponent();
         }
 
-        public void FillTable(IList<KeyValuePair<Token, CompositeToken>> grammar, Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> dict)
+        public void FillTable(IList<KeyValuePair<Token, CompositeToken>> grammar,
+            Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> dict)
         {
             Grid.Columns.Clear();
 
@@ -30,22 +30,14 @@ namespace Translator.UI
                 void AddToken(Token t)
                 {
                     if (!allTokens.Contains(t) && t.Type != TokenType.Axiom)
-                    {
                         allTokens.Add(t);
-                    }
                 }
 
                 if (!(token is CompositeToken))
-                {
                     AddToken(token);
-                }
                 if (token is CompositeToken ct)
-                {
                     foreach (var tInner in ct)
-                    {
                         AddAllTokens(tInner);
-                    }
-                }
             }
 
             //Dictionary<TKey, TValue> UnionDict<TKey, TValue>(Dictionary<TKey, TValue> dictA, Dictionary<TKey, TValue> dictB)
@@ -53,7 +45,7 @@ namespace Translator.UI
             //    var d = new Dictionary<TKey, TValue>();
             //    foreach (var VARIABLE in COLLECTION)
             //    {
-                    
+
             //    }
             //}
 
@@ -63,22 +55,21 @@ namespace Translator.UI
                 AddAllTokens(pair.Value);
             }
 
-            
+
             foreach (var kv in allTokens)
             {
                 if (!dict.ContainsKey(kv))
-                {
                     dict[kv] = new Dictionary<Token, PrecedenceRelation?>();
-                }
                 dict[kv][PrecedenceParser.TokenEnum.Sharp] = PrecedenceRelation.More;
             }
-            dict.Add(PrecedenceParser.TokenEnum.Sharp, allTokens.ToDictionary(x => x, x => (PrecedenceRelation?)PrecedenceRelation.Less));
+            dict.Add(PrecedenceParser.TokenEnum.Sharp,
+                allTokens.ToDictionary(x => x, x => (PrecedenceRelation?) PrecedenceRelation.Less));
             allTokens.Add(PrecedenceParser.TokenEnum.Sharp);
 
             for (var i = 0; i < allTokens.Count; i++)
             {
                 var kv = allTokens[i];
-                Grid.Columns.Add(new DataGridTextColumn()
+                Grid.Columns.Add(new DataGridTextColumn
                 {
                     Header = kv.Substring,
                     Binding = new Binding($"Table[{i}]")
@@ -102,7 +93,6 @@ namespace Translator.UI
                     Header = x.Substring,
                     Table = arr
                 };
-
             }).ToList();
         }
     }

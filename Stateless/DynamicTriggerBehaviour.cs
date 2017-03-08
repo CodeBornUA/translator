@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
@@ -9,7 +6,7 @@ namespace Stateless
     {
         internal class DynamicTriggerBehaviour : TriggerBehaviour
         {
-            readonly Func<object[], TState> _destination;
+            private readonly Func<object[], TState> _destination;
 
             public DynamicTriggerBehaviour(TTrigger trigger, Func<object[], TState> destination, Func<bool> guard)
                 : base(trigger, guard)

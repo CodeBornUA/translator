@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
-    static class ParameterConversion
+    internal static class ParameterConversion
     {
         public static object Unpack(object[] args, Type argType, int index)
         {
@@ -26,7 +23,7 @@ namespace Stateless
 
         public static TArg Unpack<TArg>(object[] args, int index)
         {
-            return (TArg)Unpack(args, typeof(TArg), index);
+            return (TArg) Unpack(args, typeof(TArg), index);
         }
 
         public static void Validate(object[] args, Type[] expected)
@@ -35,7 +32,7 @@ namespace Stateless
                 throw new ArgumentException(
                     string.Format(ParameterConversionResources.TooManyParameters, expected.Length, args.Length));
 
-            for (int i = 0; i < expected.Length; ++i)
+            for (var i = 0; i < expected.Length; ++i)
                 Unpack(args, expected[i], i);
         }
     }

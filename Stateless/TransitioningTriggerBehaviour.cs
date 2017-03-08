@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
@@ -9,7 +6,7 @@ namespace Stateless
     {
         internal class TransitioningTriggerBehaviour : TriggerBehaviour
         {
-            readonly TState _destination;
+            private readonly TState _destination;
 
             public TransitioningTriggerBehaviour(TTrigger trigger, TState destination, Func<bool> guard)
                 : base(trigger, guard)

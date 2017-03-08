@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=4.4.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.4.0\lib\net45\Autofac.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Extensions.Configuration, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.1.1.1\lib\netstandard1.1\Microsoft.Extensions.Configuration.dll</HintPath>
     </Reference>
@@ -118,6 +121,8 @@
   <ItemGroup>
     <Compile Include="EnumeratorExtensions.cs" />
     <Compile Include="Executor\PrnExpressionExecutor.cs" />
+    <Compile Include="Executor\VariableStore.cs" />
+    <Compile Include="ParserServiceModule.cs" />
     <Compile Include="StateMachine\ExitOperation.cs" />
     <Compile Include="StateMachine\IOperation.cs" />
     <Compile Include="IParser.cs" />

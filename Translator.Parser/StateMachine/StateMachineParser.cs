@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using Serilog.Events;
-using Translator.Lexer;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser
@@ -11,11 +10,11 @@ namespace Parser
     public class StateMachineParser : IParser
     {
         private readonly ILogger _logger;
-        private List<StateTransition> _transitions = new List<StateTransition>();
-        private StackStateMachine _machine;
-        private int operatorFirstState;
         private IObserver<LogEvent> _logObserver;
+        private StackStateMachine _machine;
+        private List<StateTransition> _transitions = new List<StateTransition>();
         private int expFirstState;
+        private int operatorFirstState;
 
         public StateMachineParser(ILogger logger)
         {
@@ -35,14 +34,6 @@ namespace Parser
                 .CreateLogger();
         }
 
-        private void ConfigureObservers(IObservable<LogEvent> observable)
-        {
-            if (_logObserver != null)
-            {
-                observable.Subscribe(_logObserver);
-            }
-        }
-
         public bool CheckSyntax(IEnumerable<Token> tokens)
         {
             _machine.State = 1;
@@ -51,11 +42,15 @@ namespace Parser
 
             var stream = tokens.GetEnumerator();
             while (stream.MoveNext())
-            {
                 _machine.Fire(stream.Current);
-            }
 
             return !_machine.StateStack.Any();
+        }
+
+        private void ConfigureObservers(IObservable<LogEvent> observable)
+        {
+            if (_logObserver != null)
+                observable.Subscribe(_logObserver);
         }
 
         private void FillTransitionsTable()
@@ -70,7 +65,7 @@ namespace Parser
                 (x => x.Substring == "program", 2)));
             _transitions.Add(StandartTransition(2,
                 "There should be an identifier after program keyword ",
-                (x => x is Identifier, 3)));
+                (x => x is IdentifierToken, 3)));
             _transitions.Add(StandartTransition(3,
                 "Program and its name should be proceeded by the line feed",
                 (x => x.Substring == "\r\n", 4)));
@@ -82,7 +77,7 @@ namespace Parser
                 (x => x.Substring == "float", 6)));
             _transitions.Add(StandartTransition(6,
                 "Identifier is expected after type of variable",
-                (x => x is Identifier, 7)));
+                (x => x is IdentifierToken, 7)));
             _transitions.Add(StandartTransition(7,
                 "Variable definitions should be split with comma"
                 , (x => x.Substring == ",", 5)));
@@ -120,25 +115,26 @@ namespace Parser
                 OnUnequality = new ErrorExitOperation(_logger, "Operator is expected here", _machine),
                 Transitions = new List<MachineTransition>()
                 {
-                     new MachineTransition(){EnterPredicate = x => x is Identifier,NewState = 102},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "readl",NewState = 104},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "writel",NewState = 104},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "do",NewState = 107},
-                     new MachineTransition(){EnterPredicate = x => x is LabelToken,NewState = 113},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "if",NewState = 114}
+                    new MachineTransition() {EnterPredicate = x => x is IdentifierToken, NewState = 102},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "readl", NewState = 104},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "writel", NewState = 104},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "do", NewState = 107},
+                    new MachineTransition() {EnterPredicate = x => x is LabelToken, NewState = 113},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "if", NewState = 114}
                 }
             });
 
             _transitions.Add(StandartTransition(113, "New line is expected here", (x => x.Substring == "\r\n", 118)));
 
             expFirstState = FillExpression();
-            _transitions.Add(SubMachineTransition(102, expFirstState, x => x.Substring == "=", 103, "'=' is expected here"));
+            _transitions.Add(SubMachineTransition(102, expFirstState, x => x.Substring == "=", 103,
+                "'=' is expected here"));
             _transitions.Add(ExitOnUnequality(103));
             _transitions.Add(StandartTransition(104, "'(' expected here", (x => x.Substring == "(", 105)));
-            _transitions.Add(StandartTransition(105, "Identifier is expected here", (x => x is Identifier, 106)));
+            _transitions.Add(StandartTransition(105, "Identifier is expected here", (x => x is IdentifierToken, 106)));
             _transitions.Add(StandartTransition(106, "Comma is expected here", (x => x.Substring == ",", 105)));
             _transitions.Add(StandartTransition(106, "')' expected here", (x => x.Substring == ")", null)));
-            _transitions.Add(StandartTransition(107, "Identifier expected here", (x => x is Identifier, 108)));
+            _transitions.Add(StandartTransition(107, "Identifier expected here", (x => x is IdentifierToken, 108)));
             _transitions.Add(SubMachineTransition(108, expFirstState, x => x.Substring == "=", 109, "'=' is not found"));
             _transitions.Add(SubMachineTransition(109, expFirstState, x => x.Substring == "to", 110, "'to' is not found"));
             _transitions.Add(SubMachineTransition(110, 101, x => x.Substring == "\r\n", 111, "New line is expected here"));
@@ -176,12 +172,12 @@ namespace Parser
                 OnUnequality = new StackExitOperation(_machine),
                 Transitions = new List<MachineTransition>()
                 {
-                     new MachineTransition(){EnterPredicate = x => x is Identifier,NewState = 102},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "readl",NewState = 104},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "writel",NewState = 104},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "do",NewState = 107},
-                     new MachineTransition(){EnterPredicate = x => x.Substring == "if",NewState = 114}
-                     //Everything but label
+                    new MachineTransition() {EnterPredicate = x => x is IdentifierToken, NewState = 102},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "readl", NewState = 104},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "writel", NewState = 104},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "do", NewState = 107},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "if", NewState = 114}
+                    //Everything but label
                 }
             });
 
@@ -224,27 +220,32 @@ namespace Parser
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
                     },
-                    new MachineTransition(){
+                    new MachineTransition()
+                    {
                         EnterPredicate = x => x.Substring == ">=",
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
                     },
-                    new MachineTransition(){
+                    new MachineTransition()
+                    {
                         EnterPredicate = x => x.Substring == "<",
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
                     },
-                    new MachineTransition(){
+                    new MachineTransition()
+                    {
                         EnterPredicate = x => x.Substring == "<=",
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
                     },
-                    new MachineTransition(){
+                    new MachineTransition()
+                    {
                         EnterPredicate = x => x.Substring == "==",
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
                     },
-                    new MachineTransition(){
+                    new MachineTransition()
+                    {
                         EnterPredicate = x => x.Substring == "!=",
                         NewState = expFirstState,
                         StackOperation = new WriteStackOperation(_machine.StateStack, 303)
@@ -258,8 +259,8 @@ namespace Parser
                 PreviousState = 303,
                 Transitions = new List<MachineTransition>()
                 {
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "and", NewState = 301},
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "or", NewState = 301}
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "and", NewState = 301},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "or", NewState = 301}
                 }
             });
 
@@ -286,7 +287,8 @@ namespace Parser
                 OnUnequality = new TransitionExitOperation(_machine, 201, true)
             });
 
-            _transitions.Add(StandartTransition(201, "Constant of identifier is expected here", (x => x is Identifier, 202), (x => x is Constant<float>, 202)));
+            _transitions.Add(StandartTransition(201, "Constant of identifier is expected here",
+                (x => x is IdentifierToken, 202), (x => x is ConstantToken<float>, 202)));
             _transitions.Add(SubMachineTransition(201, initial, x => x.Substring == "(", 203));
 
             _transitions.Add(new StateTransition()
@@ -295,10 +297,10 @@ namespace Parser
                 PreviousState = 202,
                 Transitions = new List<MachineTransition>()
                 {
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "+", NewState = 201},
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "-", NewState = 201},
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "*", NewState = 201},
-                    new MachineTransition(){EnterPredicate = x => x.Substring == "/", NewState = 201}
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "+", NewState = 201},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "-", NewState = 201},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "*", NewState = 201},
+                    new MachineTransition() {EnterPredicate = x => x.Substring == "/", NewState = 201}
                 }
             });
 
@@ -307,7 +309,8 @@ namespace Parser
             return initial;
         }
 
-        private StateTransition SubMachineTransition(int prevState, int subState, Func<Token, bool> pred, int? nextState = null, string errorMessage = null)
+        private StateTransition SubMachineTransition(int prevState, int subState, Func<Token, bool> pred,
+            int? nextState = null, string errorMessage = null)
         {
             var prevT = _transitions.FirstOrDefault(x => x.PreviousState == prevState);
             var t = prevT ?? new StateTransition()
@@ -325,7 +328,8 @@ namespace Parser
             {
                 EnterPredicate = pred,
                 NewState = subState,
-                StackOperation = nextState != null ? new WriteStackOperation(_machine.StateStack, nextState.Value) : null,
+                StackOperation =
+                    nextState != null ? new WriteStackOperation(_machine.StateStack, nextState.Value) : null,
             };
 
             if (nextState == null && t.OnEquality == null)
@@ -354,7 +358,8 @@ namespace Parser
             return t;
         }
 
-        private StateTransition StandartTransition(int prevState, string errorMessage = null, params ValueTuple<Func<Token, bool>, int?>[] func)
+        private StateTransition StandartTransition(int prevState, string errorMessage = null,
+            params ValueTuple<Func<Token, bool>, int?>[] func)
         {
             var prevT = _transitions.FirstOrDefault(x => x.PreviousState == prevState);
             var t = prevT ?? new StateTransition()

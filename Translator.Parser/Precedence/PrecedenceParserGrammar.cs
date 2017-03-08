@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Precedence
 {
@@ -8,7 +8,7 @@ namespace Parser.Precedence
         public static void InitGrammar()
         {
             //Program rule
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Program, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Program, new CompositeToken
             {
                 TokenEnum.ProgramName,
                 TokenEnum.NewLine(),
@@ -39,47 +39,47 @@ namespace Parser.Precedence
 
         private static void FillLogicalExpression()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression1, new CompositeToken
             {
                 TokenEnum.LogicalExpression
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression, new CompositeToken
             {
                 TokenEnum.LogicalTerm1
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalExpression, new CompositeToken
             {
                 TokenEnum.LogicalExpression,
                 TokenEnum.String("or"),
                 TokenEnum.LogicalTerm1
             }));
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm, new CompositeToken
             {
                 TokenEnum.LogicalMult
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm1, new CompositeToken
             {
                 TokenEnum.LogicalTerm
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalTerm, new CompositeToken
             {
                 TokenEnum.LogicalTerm,
                 TokenEnum.String("and"),
                 TokenEnum.LogicalMult
             }));
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken
             {
                 TokenEnum.Relation
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken
             {
                 TokenEnum.String("["),
                 TokenEnum.LogicalExpression1,
                 TokenEnum.String("]")
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.LogicalMult, new CompositeToken
             {
                 TokenEnum.String("!"),
                 TokenEnum.LogicalMult
@@ -92,38 +92,36 @@ namespace Parser.Precedence
                 TokenEnum.String(">"),
                 TokenEnum.String(">="),
                 TokenEnum.String("=="),
-                TokenEnum.String("!="),
+                TokenEnum.String("!=")
             };
             foreach (var relationsOp in relationsOps)
-            {
-                _grammar.Add(new GrammarReplaceRule(TokenEnum.Relation, new CompositeToken()
+                Grammar.Add(new GrammarReplaceRule(TokenEnum.Relation, new CompositeToken
                 {
                     TokenEnum.Expression1,
                     relationsOp,
                     TokenEnum.Expression1
                 }));
-            }
         }
 
         private static void DefinitionList()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.DefList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.DefList, new CompositeToken
             {
                 TokenEnum.DefList,
                 TokenEnum.String(";"),
                 TokenEnum.Def
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.DefList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.DefList, new CompositeToken
             {
                 TokenEnum.Def
             }));
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.DefList1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.DefList1, new CompositeToken
             {
                 TokenEnum.DefList
             }));
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Def, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Def, new CompositeToken
             {
                 TokenEnum.IdList1,
                 TokenEnum.String(":"),
@@ -133,22 +131,22 @@ namespace Parser.Precedence
 
         private static void StatementList()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList, new CompositeToken
             {
                 TokenEnum.StatementList,
                 TokenEnum.NewLine(),
                 TokenEnum.Statement
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList, new CompositeToken
             {
                 TokenEnum.NewLine(),
                 TokenEnum.Statement
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Statement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Statement, new CompositeToken
             {
                 TokenEnum.UnlabeledStatement
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Statement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Statement, new CompositeToken
             {
                 TokenEnum.Label(),
                 TokenEnum.String(":"),
@@ -156,7 +154,7 @@ namespace Parser.Precedence
             }));
 
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.StatementList1, new CompositeToken
             {
                 TokenEnum.StatementList,
                 TokenEnum.NewLine()
@@ -173,7 +171,7 @@ namespace Parser.Precedence
 
         private static void Loop()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken
             {
                 TokenEnum.String("do"),
                 TokenEnum.Id(),
@@ -188,7 +186,7 @@ namespace Parser.Precedence
 
         private static void If()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken
             {
                 TokenEnum.String("if"),
                 TokenEnum.LogicalExpression1,
@@ -200,22 +198,22 @@ namespace Parser.Precedence
 
         private static void IdList()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.IdList1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.IdList1, new CompositeToken
             {
                 TokenEnum.IdList
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.IdList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.IdList, new CompositeToken
             {
                 TokenEnum.String(","),
                 TokenEnum.Id()
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.IdList, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.IdList, new CompositeToken
             {
                 TokenEnum.IdList,
                 TokenEnum.String(","),
                 TokenEnum.Id()
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.ProgramName, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.ProgramName, new CompositeToken
             {
                 TokenEnum.String("program"),
                 TokenEnum.Id()
@@ -224,7 +222,7 @@ namespace Parser.Precedence
 
         private static void Assignment()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken
             {
                 TokenEnum.Id(),
                 TokenEnum.String("="),
@@ -234,14 +232,14 @@ namespace Parser.Precedence
 
         private static void InputOutput()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken
             {
                 TokenEnum.String("readl"),
                 TokenEnum.String("("),
                 TokenEnum.IdList1,
                 TokenEnum.String(")")
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.UnlabeledStatement, new CompositeToken
             {
                 TokenEnum.String("writel"),
                 TokenEnum.String("("),
@@ -252,20 +250,20 @@ namespace Parser.Precedence
 
         private static void FillExpression()
         {
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken
             {
                 TokenEnum.Term1
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression1, new CompositeToken
             {
                 TokenEnum.Expression
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression2, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression2, new CompositeToken
             {
                 TokenEnum.Expression1
             }));
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken
             {
                 TokenEnum.Expression,
                 TokenEnum.String("+"),
@@ -274,7 +272,7 @@ namespace Parser.Precedence
             {
                 OnReplaceAction = (stack, list) => list.Add(new StringToken("+"))
             });
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken
             {
                 TokenEnum.Expression,
                 TokenEnum.String("-"),
@@ -283,7 +281,7 @@ namespace Parser.Precedence
             {
                 OnReplaceAction = (stack, list) => list.Add(new StringToken("-"))
             });
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Expression, new CompositeToken
             {
                 TokenEnum.String("-"),
                 TokenEnum.Term1
@@ -292,15 +290,15 @@ namespace Parser.Precedence
                 OnReplaceAction = (stack, list) => list.Add(new StringToken("@"))
             });
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Term1, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Term1, new CompositeToken
             {
                 TokenEnum.Term
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken
             {
                 TokenEnum.Mult
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken
             {
                 TokenEnum.Term,
                 TokenEnum.String("*"),
@@ -309,7 +307,7 @@ namespace Parser.Precedence
             {
                 OnReplaceAction = (stack, list) => list.Add(new StringToken("*"))
             });
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Term, new CompositeToken
             {
                 TokenEnum.Term,
                 TokenEnum.String("/"),
@@ -319,20 +317,20 @@ namespace Parser.Precedence
                 OnReplaceAction = (stack, list) => list.Add(new StringToken("/"))
             });
 
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken
             {
                 TokenEnum.String("("),
                 TokenEnum.Expression1,
                 TokenEnum.String(")")
             }));
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken
             {
                 TokenEnum.Id()
             })
             {
                 OnReplaceAction = (popped, list) => list.Add(popped.Last())
             });
-            _grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken()
+            Grammar.Add(new GrammarReplaceRule(TokenEnum.Mult, new CompositeToken
             {
                 TokenEnum.Const()
             })

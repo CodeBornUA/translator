@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using Serilog;
-using Stateless;
-using Translator.Lexer;
 
 namespace Parser
 {
@@ -38,7 +35,7 @@ namespace Parser
 
     public class StackExitOperation : ExitOperation
     {
-        private bool _fireAgain;
+        private readonly bool _fireAgain;
 
         public StackExitOperation(StackStateMachine machine, bool fireAgain = false) : base(machine)
         {
@@ -51,16 +48,14 @@ namespace Parser
             Machine.State = nextState;
 
             if (_fireAgain)
-            {
                 Machine.Fire(Machine.Current);
-            }
         }
     }
 
     public class TransitionExitOperation : ExitOperation
     {
-        private bool _fireAgain;
-        private int _newState;
+        private readonly bool _fireAgain;
+        private readonly int _newState;
 
         public TransitionExitOperation(StackStateMachine machine, int newState, bool fireAgain = false) : base(machine)
         {
@@ -73,9 +68,7 @@ namespace Parser
             Machine.State = _newState;
 
             if (_fireAgain)
-            {
                 Machine.Fire(Machine.Current);
-            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Translator.Lexer
+﻿namespace Translator.LexerAnalyzer
 {
     public enum LexerState
     {

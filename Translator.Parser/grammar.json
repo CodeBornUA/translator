@@ -1,14 +1,15 @@
 ﻿{
-  "root": "program id \\r\\n var <deflist> \\r\\n begin \\r\\n <stmlist> \\r\\n end",
-  "deflist": "<def> {, <def>}",
-  "def": "float id",
-  "stmlist": "<stm> {\\r\\n <stm>}",
-  "stm": "lbl: <nonlabeled>| <nonlabeled>",
-  "nonlabeled": "id = <exp>| readl ( <idlist> )| writel ( <idlist> )| do id = <exp> to <exp> \\r\\n next| if <logexp> then goto id[IsLabel]",
-  "exp": "(-|) <term> {+ <term>| -<term>}",
-  "term": "<mult> {* <mult>| / <mult>}",
-  "mult": "id|const|( <exp> )",
-  "logexp": "<logterm> {or <logexp>}",
-  "logterm": "<logmult> {and <logmult>}",
-  "logmult": "<exp> (<|<=|>|>=|==|!=) <exp>| [ <logexp> ]| not <logmult>"          
+	"root": "program id \\r\\n var <deflist> \\r\\n begin \\r\\n <stmlist> \\r\\n end",
+	"deflist": "<def> {, <def>}",
+	"def": "float id",
+	"stmlist": "<stm> {\\r\\n <stm>}",
+	"stm": "lbl: <nonlabeled>| <nonlabeled>",
+	"nonlabeled":
+		"id = <exp>| readl ( <idlist> )| writel ( <idlist> )| do id = <exp> to <exp> \\r\\n next| if <logexp> then goto id[IsLabel]",
+	"exp": "(-|) <term> {+ <term>| -<term>}",
+	"term": "<mult> {* <mult>| / <mult>}",
+	"mult": "id|const|( <exp> )",
+	"logexp": "<logterm> {or <logexp>}",
+	"logterm": "<logmult> {and <logmult>}",
+	"logmult": "<exp> (<|<=|>|>=|==|!=) <exp>| [ <logexp> ]| not <logmult>"
 }

@@ -2,22 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Translator.Lexer
+namespace Translator.LexerAnalyzer
 {
     public class SymbolClass : IEquatable<SymbolClass>
     {
         public Class Class { get; set; }
 
         public IList<char> Symbols { get; set; }
-
-        public static SymbolClass operator |(SymbolClass first, SymbolClass second)
-        {
-            return new SymbolClass()
-            {
-                Class = first.Class | second.Class,
-                Symbols = first.Symbols.Union(second.Symbols).ToList()
-            };
-        }
 
         public bool Equals(SymbolClass other)
         {
@@ -26,11 +17,20 @@ namespace Translator.Lexer
             return Class == other.Class;
         }
 
+        public static SymbolClass operator |(SymbolClass first, SymbolClass second)
+        {
+            return new SymbolClass
+            {
+                Class = first.Class | second.Class,
+                Symbols = first.Symbols.Union(second.Symbols).ToList()
+            };
+        }
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((SymbolClass) obj);
         }
 
@@ -70,19 +70,67 @@ namespace Translator.Lexer
 
     public struct Symbol : IEquatable<Symbol>
     {
-        public static readonly Symbol Letter = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Letter} };
-        public static readonly Symbol Digit = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Digit} };
-        public static readonly Symbol Splitter = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Splitter} };
-        public static readonly Symbol Operator = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Operator} };
-        public static readonly Symbol Point = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Point} };
-        public static readonly Symbol Less = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Less} };
-        public static readonly Symbol Greater = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Greater} };
-        public static readonly Symbol Equal = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Equal} };
-        public static readonly Symbol Exclamation = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Exclamation} };
-        public static readonly Symbol Colon = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Colon} };
-        public static readonly Symbol Space = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Space} };
-        public static readonly Symbol Comma = new Symbol() {Class = new SymbolClass() {Class = Translator.Lexer.Class.Comma} };
-        public static readonly Symbol Hypen = new Symbol() { Class = new SymbolClass() { Class = Translator.Lexer.Class.Hypen } };
+        public static readonly Symbol Letter = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Letter}
+        };
+
+        public static readonly Symbol Digit = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Digit}
+        };
+
+        public static readonly Symbol Splitter = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Splitter}
+        };
+
+        public static readonly Symbol Operator = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Operator}
+        };
+
+        public static readonly Symbol Point = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Point}
+        };
+
+        public static readonly Symbol Less = new Symbol {Class = new SymbolClass {Class = LexerAnalyzer.Class.Less}};
+
+        public static readonly Symbol Greater = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Greater}
+        };
+
+        public static readonly Symbol Equal = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Equal}
+        };
+
+        public static readonly Symbol Exclamation = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Exclamation}
+        };
+
+        public static readonly Symbol Colon = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Colon}
+        };
+
+        public static readonly Symbol Space = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Space}
+        };
+
+        public static readonly Symbol Comma = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Comma}
+        };
+
+        public static readonly Symbol Hypen = new Symbol
+        {
+            Class = new SymbolClass {Class = LexerAnalyzer.Class.Hypen}
+        };
 
         public Symbol(char? symbol = null, IList<SymbolClass> classes = null)
         {
@@ -107,7 +155,7 @@ namespace Translator.Lexer
 
         public override int GetHashCode()
         {
-            return (Class != null ? Class.GetHashCode() : 0);
+            return Class != null ? Class.GetHashCode() : 0;
         }
 
         public static bool operator ==(Symbol left, Symbol right)
@@ -122,7 +170,7 @@ namespace Translator.Lexer
 
         public static Symbol operator |(Symbol first, Symbol second)
         {
-            return new Symbol()
+            return new Symbol
             {
                 Class = first.Class | second.Class
             };

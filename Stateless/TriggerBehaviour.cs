@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Stateless
 {
@@ -9,23 +6,19 @@ namespace Stateless
     {
         internal abstract class TriggerBehaviour
         {
-            readonly TTrigger _trigger;
-            readonly Func<bool> _guard;
+            private readonly Func<bool> _guard;
 
             protected TriggerBehaviour(TTrigger trigger, Func<bool> guard)
             {
-                _trigger = trigger;
+                Trigger = trigger;
                 _guard = guard;
             }
 
-            public TTrigger Trigger { get { return _trigger; } }
+            public TTrigger Trigger { get; }
 
             public bool IsGuardConditionMet
             {
-                get
-                {
-                    return _guard();
-                }
+                get { return _guard(); }
             }
 
             public abstract bool ResultsInTransitionFrom(TState source, object[] args, out TState destination);

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser
 {
@@ -32,9 +32,7 @@ namespace Parser
             }
 
             if (possible.NewState != null)
-            {
                 State = possible.NewState.Value;
-            }
             possible.StackOperation?.Do();
             possible.ExitOperation?.Do();
         }

@@ -152,9 +152,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ErrorItem.cs" />
+    <Compile Include="LexerModule.cs" />
     <Compile Include="LexerValidator.cs" />
-    <Compile Include="Tokens\Constant.cs" />
-    <Compile Include="Tokens\Identifier.cs" />
+    <Compile Include="Tokens\ConstantToken.cs" />
+    <Compile Include="Tokens\IdentifierToken.cs" />
     <Compile Include="Lexer.cs" />
     <Compile Include="LexerState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

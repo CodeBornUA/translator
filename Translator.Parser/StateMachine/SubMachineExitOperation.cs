@@ -1,15 +1,14 @@
-﻿using System;
-
-namespace Parser
+﻿namespace Parser
 {
     internal class SubMachineExitOperation : ExitOperation
     {
-        private int _subState;
-        private int _exitState;
-        private StackStateMachine _machine;
-        private bool _fireAgain;
+        private readonly int _exitState;
+        private readonly bool _fireAgain;
+        private readonly StackStateMachine _machine;
+        private readonly int _subState;
 
-        public SubMachineExitOperation(int subState, int exitState, StackStateMachine machine, bool fireAgain = false) : base(machine)
+        public SubMachineExitOperation(int subState, int exitState, StackStateMachine machine, bool fireAgain = false)
+            : base(machine)
         {
             _subState = subState;
             _exitState = exitState;
@@ -23,9 +22,7 @@ namespace Parser
             _machine.State = _subState;
 
             if (_fireAgain)
-            {
                 _machine.Fire(_machine.Current);
-            }
         }
     }
 }

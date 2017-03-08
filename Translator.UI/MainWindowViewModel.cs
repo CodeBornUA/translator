@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Serilog.Events;
-using Translator.Lexer;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Translator.UI
@@ -12,19 +11,14 @@ namespace Translator.UI
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private IEnumerable<Token> _allTokens;
-        private IEnumerable<Identifier> _identifiers;
-        private IEnumerable<Constant<float>> _constants;
+        private IEnumerable<ConstantToken<float>> _constants;
+        private IEnumerable<IdentifierToken> _identifiers;
         private IEnumerable<LabelToken> _labels;
         private LogEventLevel _level;
-        private readonly ObservableCollection<ErrorItem> _logMessages = new ObservableCollection<ErrorItem>();
-        private ObservableCollection<PrecedenceParsingStep> _precedenceSteps = new ObservableCollection<PrecedenceParsingStep>();
 
         public MainWindowViewModel()
         {
-            _logMessages.CollectionChanged += (sender, args) =>
-            {
-                OnPropertyChanged(nameof(LogMessagesEnumerable));
-            };
+            LogMessages.CollectionChanged += (sender, args) => { OnPropertyChanged(nameof(LogMessagesEnumerable)); };
         }
 
         public IEnumerable<Token> AllTokens
@@ -37,7 +31,7 @@ namespace Translator.UI
             }
         }
 
-        public IEnumerable<Identifier> Identifiers
+        public IEnumerable<IdentifierToken> Identifiers
         {
             get { return _identifiers; }
             set
@@ -47,7 +41,7 @@ namespace Translator.UI
             }
         }
 
-        public IEnumerable<Constant<float>> Constants
+        public IEnumerable<ConstantToken<float>> Constants
         {
             get { return _constants; }
             set
@@ -82,28 +76,17 @@ namespace Translator.UI
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public IEnumerable<ErrorItem> LogMessagesEnumerable
         {
-            get
-            {
-                return _logMessages.Where(x => x.Type >= _level);
-            }
+            get { return LogMessages.Where(x => x.Type >= _level); }
         }
 
-        public ObservableCollection<ErrorItem> LogMessages
-        {
-            get
-            {
-                return _logMessages;
-            }
-        }
+        public ObservableCollection<ErrorItem> LogMessages { get; } = new ObservableCollection<ErrorItem>();
 
-        public ObservableCollection<PrecedenceParsingStep> PrecedenceParsingSteps
-        {
-            get { return _precedenceSteps; }
-        }
+        public ObservableCollection<PrecedenceParsingStep> PrecedenceParsingSteps { get; } =
+            new ObservableCollection<PrecedenceParsingStep>();
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
@@ -115,12 +98,5 @@ namespace Translator.UI
             LogMessages.Clear();
             PrecedenceParsingSteps.Clear();
         }
-    }
-
-    public class PrecedenceParsingStep
-    {
-        public string StackContent { get; set; }
-        public string Relation { get; set; }
-        public string InputTokens { get; set; }
     }
 }

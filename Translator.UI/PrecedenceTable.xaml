@@ -10,9 +10,10 @@
         <DataGrid Name="Grid" AutoGenerateColumns="False">
             <DataGrid.RowHeaderTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor,  
+                    <TextBlock
+                        Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor,  
                                   AncestorType={x:Type DataGridRow}},  
-                                  Path=Item.Header}"/>
+                                  Path=Item.Header}" />
                 </DataTemplate>
             </DataGrid.RowHeaderTemplate>
         </DataGrid>

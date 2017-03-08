@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Translator.Lexer;
+using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser
 {

@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serilog.Events;
 using Translator.Lexer;
 
 namespace Translator.Tests
@@ -24,14 +22,12 @@ end
 ";
 
         public string TestPrecedenceProgram = @"program test
-var ,a,b,c : float
+var ,a,b,c,res : float
 begin
-    readl(,a, b)
-    lbl: a = a - 1
-    if a>0 then goto lbl
-    do c = 1 to 10
-        writel(,c)
-    next
+    a = 1
+    b = 2
+    c = 3
+    res = (a+b)*2+c
 end";
         [TestMethod]
         public void LexerTest()
@@ -46,7 +42,7 @@ end";
             Assert.AreEqual("\n\n", tokens.ElementAt(2).ToString());
         }
 
-        [TestMethod]
+        [DataTestMethod]
         [DataRow("a")]
         [DataRow("a234")]
         public void IdentifierTest(string name)
@@ -71,7 +67,7 @@ end";
             Assert.AreEqual(new Identifier("abc"), tokens.ElementAt(1));
         }
 
-        [TestMethod]
+        [DataTestMethod]
         [DataRow(".21")]
         [DataRow("15.21")]
         [DataRow(".34")]

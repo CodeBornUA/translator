@@ -19,7 +19,7 @@ namespace Parser.Precedence
             _logger = logger;
         }
 
-        public IEnumerable<Token> FirstPlus(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
+        public IEnumerable<Token> FirstPlus(IList<GrammarReplaceRule> grammar, Token token)
         {
             var list = new List<Token>();
             void Impl(Token tokenIn)
@@ -32,16 +32,16 @@ namespace Parser.Precedence
                 list.Add(tokenIn);
                 if (tokenIn.Type == TokenType.Nonterminal)
                 {
-                    foreach (var kv in grammar.Where(_ => _.Key == tokenIn))
+                    foreach (var kv in grammar.Where(_ => _.Token == tokenIn))
                     {
-                        Impl(kv.Value.FirstOrDefault());
+                        Impl(kv.CompositeToken.FirstOrDefault());
                     }
                 }
             }
 
-            foreach (var source in grammar.Where(x => x.Key == token))
+            foreach (var source in grammar.Where(x => x.Token == token))
             {
-                Impl(source.Value.First());
+                Impl(source.CompositeToken.First());
             }
 
             return list.Distinct();
@@ -68,7 +68,7 @@ namespace Parser.Precedence
             return list.Distinct();
         }
 
-        public IEnumerable<Token> LastPlus(IList<KeyValuePair<Token, CompositeToken>> grammar, Token token)
+        public IEnumerable<Token> LastPlus(IList<GrammarReplaceRule> grammar, Token token)
         {
             var list = new List<Token>();
             void Impl(Token tokenIn)
@@ -81,41 +81,41 @@ namespace Parser.Precedence
                 list.Add(tokenIn);
                 if (tokenIn.Type == TokenType.Nonterminal)
                 {
-                    foreach (var kv in grammar.Where(_ => _.Key == tokenIn))
+                    foreach (var kv in grammar.Where(_ => _.Token == tokenIn))
                     {
-                        Impl(kv.Value.LastOrDefault());
+                        Impl(kv.CompositeToken.LastOrDefault());
                     }
                 }
             }
 
-            foreach (var source in grammar.Where(x => x.Key == token))
+            foreach (var source in grammar.Where(x => x.Token == token))
             {
-                Impl(source.Value.Last());
+                Impl(source.CompositeToken.Last());
             }
 
             return list.Distinct();
         }
 
-        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> GetPrecedenceTable(IList<KeyValuePair<Token, CompositeToken>> grammar)
+        public Dictionary<Token, Dictionary<Token, PrecedenceRelation?>> GetPrecedenceTable(IList<GrammarReplaceRule> grammar)
         {
             var dict = new Dictionary<Token, Dictionary<Token, PrecedenceRelation?>>();
 
             //Equal
             foreach (var token in grammar)
             {
-                for (var index = 0; index < token.Value.Count - 1; index++) //From first to before last elements
+                for (var index = 0; index < token.CompositeToken.Count - 1; index++) //From first to before last elements
                 {
-                    var tokenInner = token.Value[index];
-                    if (index < token.Value.Count)
+                    var tokenInner = token.CompositeToken[index];
+                    if (index < token.CompositeToken.Count)
                     {
-                        var nextToken = token.Value[index + 1];
+                        var nextToken = token.CompositeToken[index + 1];
                         SetRelation(dict, tokenInner, nextToken, PrecedenceRelation.Equal);
                     }
                 }
 
-                if (!dict.ContainsKey(token.Value[token.Value.Count - 1]))
+                if (!dict.ContainsKey(token.CompositeToken[token.CompositeToken.Count - 1]))
                 {
-                    dict[token.Value[token.Value.Count - 1]] = new Dictionary<Token, PrecedenceRelation?>();
+                    dict[token.CompositeToken[token.CompositeToken.Count - 1]] = new Dictionary<Token, PrecedenceRelation?>();
                 }
             }
 

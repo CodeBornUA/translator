@@ -21,6 +21,17 @@ namespace Translator.Lexer
             Value = Parse(value);
         }
 
+        public Constant(T value)
+        {
+            if (!typeof(T).GetTypeInfo().IsPrimitive)
+            {
+                throw new InvalidOperationException("Constant MUST be a primitive type");
+            }
+
+            Escaped = value.ToString();
+            Value = value;
+        }
+
         public string Escaped { get; set; }
 
         public bool Equals(Constant<T> other)

@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Parser.Precedence;
 using Translator.Lexer;
 
-namespace Parser.Precedence.Tests
+namespace ParserTests.Precedence
 {
     [TestClass()]
     public class PrecedenceGrammarHelperTests
     {
-        [TestMethod()]
+        [TestMethod]
         public void FirstPlusTest()
         {
             var innerComposite = new CompositeToken()
@@ -29,10 +30,10 @@ namespace Parser.Precedence.Tests
             };
 
             var helper = new PrecedenceGrammarHelper(null);
-            var firstPlus = helper.FirstPlus(new List<KeyValuePair<Token, CompositeToken>>()
+            var firstPlus = helper.FirstPlus(new List<GrammarReplaceRule>()
             {
-                
-            }, composite).ToList();
+                new GrammarReplaceRule(PrecedenceParser.TokenEnum.Program, composite)
+            }, PrecedenceParser.TokenEnum.Program).ToList();
 
             Assert.AreEqual(2, firstPlus.Count);
             Assert.IsTrue(firstPlus.Any(x => x is StringToken && x.Substring == "A"));

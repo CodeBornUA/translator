@@ -7,8 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using Parser;
-using Parser.Precedence;
 using Serilog.Events;
+using Parser.Precedence;
 using Translator.Lexer;
 
 namespace Translator.UI
@@ -62,6 +62,13 @@ namespace Translator.UI
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
 
                 (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
+                (_parser as PrecedenceParser).PRNChanged += (token, prn) =>
+                {
+                    if (token == PrecedenceParser.TokenEnum.Statement)
+                    {
+                        prn.Clear();
+                    }
+                };
                 valid = valid && _parser.CheckSyntax(_lexer.Parsed);
                 if (valid)
                 {

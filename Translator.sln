@@ -1,23 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26206.0
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.UI", "Translator.UI\Translator.UI.csproj", "{7E692AED-338A-4265-BF85-DB557982BB73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.LexerAnalyzer", "Translator.LexerAnalyzer\Translator.LexerAnalyzer.csproj", "{D6FF3C0C-D2CE-4CA3-B82F-215FE0D58FA3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.Lexer", "Translator.LexerAnalyzer\Translator.Lexer.csproj", "{D6FF3C0C-D2CE-4CA3-B82F-215FE0D58FA3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.LexerAnalyzerTests", "Translator.LexerAnalyzerTests\Translator.LexerAnalyzerTests.csproj", "{08476574-F173-4435-BCB6-E9552BF5DBAE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stateless", "Stateless\Stateless.csproj", "{A15EEC02-60EC-4705-A58B-A6ECD55A9628}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parser", "Translator.Parser\Parser.csproj", "{74930428-879F-4FA1-BC41-9FDC4D18E936}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.Parser", "Translator.Parser\Translator.Parser.csproj", "{74930428-879F-4FA1-BC41-9FDC4D18E936}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translator.Core", "Translator.Core\Translator.Core.csproj", "{ED0BBE41-0105-41A6-8690-5EA533BD2877}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParserTests", "ParserTests\ParserTests.csproj", "{18578A3C-9597-42DE-B67F-CF070A327D00}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E9D5F5B3-AD4B-451D-B25B-40FAD9A1EAB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,8 +62,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7E692AED-338A-4265-BF85-DB557982BB73} = {7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}
 		{D6FF3C0C-D2CE-4CA3-B82F-215FE0D58FA3} = {7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}
+		{08476574-F173-4435-BCB6-E9552BF5DBAE} = {E9D5F5B3-AD4B-451D-B25B-40FAD9A1EAB3}
 		{A15EEC02-60EC-4705-A58B-A6ECD55A9628} = {7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}
 		{74930428-879F-4FA1-BC41-9FDC4D18E936} = {7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}
 		{ED0BBE41-0105-41A6-8690-5EA533BD2877} = {7A5D8FF9-3F67-4391-B539-2C7C7EE77D14}
+		{18578A3C-9597-42DE-B67F-CF070A327D00} = {E9D5F5B3-AD4B-451D-B25B-40FAD9A1EAB3}
 	EndGlobalSection
 EndGlobal

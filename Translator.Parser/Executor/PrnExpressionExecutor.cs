@@ -5,8 +5,7 @@ namespace Parser.Executor
 {
     public static class PrnExpressionExecutor
     {
-        public static float ComputeExpression(IList<Token> prn,
-            IDictionary<IdentifierToken, ConstantToken<float>> identifierValues)
+        public static float ComputeExpression(IList<Token> prn, VariableStore identifierValues)
         {
             var stack = new Stack<Token>();
 
@@ -23,7 +22,7 @@ namespace Parser.Executor
             return (popped as ConstantToken<float>)?.Value ?? identifierValues[popped as IdentifierToken].Value;
         }
 
-        private static void ProcessArithmeticOperations(IDictionary<IdentifierToken, ConstantToken<float>> identifierValues,
+        private static void ProcessArithmeticOperations(VariableStore identifierValues,
             Token token, Stack<Token> stack)
         {
             if (token.Substring == "+" || token.Substring == "-" || token.Substring == "*" || token.Substring == "/")
@@ -62,7 +61,7 @@ namespace Parser.Executor
                 stack.Push(token);
         }
 
-        private static void ProcessUnarySubtraction(IDictionary<IdentifierToken, ConstantToken<float>> identifierValues,
+        private static void ProcessUnarySubtraction(VariableStore identifierValues,
             Token token, Stack<Token> stack)
         {
             if (token.Substring == "@")

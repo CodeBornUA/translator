@@ -57,6 +57,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="PrnComposerTests.cs" />
     <Compile Include="PrnComputerTests.cs" />
     <Compile Include="Precedence\PrecedenceGrammarHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

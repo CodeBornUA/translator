@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
 using Translator.LexerAnalyzer.Tokens;
 
@@ -21,7 +20,7 @@ namespace ParserTests
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<IdentifierToken, ConstantToken<float>>());
+                new VariableStore());
 
             Assert.AreEqual(expected, result);
         }
@@ -35,7 +34,7 @@ namespace ParserTests
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<IdentifierToken, ConstantToken<float>>());
+                new VariableStore());
 
             Assert.AreEqual(-2, result);
         }
@@ -49,7 +48,7 @@ namespace ParserTests
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<IdentifierToken, ConstantToken<float>>());
+                new VariableStore());
 
             Assert.AreEqual(-2, result);
         }
@@ -64,7 +63,7 @@ namespace ParserTests
             };
 
             var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new Dictionary<IdentifierToken, ConstantToken<float>>
+                new VariableStore()
                 {
                     [i] = new ConstantToken<float>(2)
                 });

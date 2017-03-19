@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
+using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace ParserTests
@@ -87,6 +88,71 @@ namespace ParserTests
             PrnExpressionExecutor.ComputeExpression(expression, store);
 
             Assert.AreEqual(2, store[i].Value);
+        }
+
+        [DataTestMethod]
+        [DataRow(2, true)]
+        [DataRow(3, false)]
+        public void ItComputesLogicalExpressions(int iValue, bool success)
+        {
+            var i = new IdentifierToken("i");
+            var res = new IdentifierToken("res");
+            var expression = new Token[]
+            {
+                res, i, new ConstantToken<float>(2), new StringToken("=="), new StringToken("=")
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(iValue),
+                [res] = new ConstantToken<float>(0)
+            };
+            PrnExpressionExecutor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(success ? 1 : 0, store[res].Value);
+        }
+
+        [TestMethod]
+        public void ItMakesConditionalJumps()
+        {
+            var i = new IdentifierToken("i");
+            var res = new IdentifierToken("res");
+            var expression = new Token[]
+            {
+                i, new ConstantToken<float>(1), new StringToken("=="), new LabelToken("t"), new ConditionalFalseJumpOperation(),
+                res, new ConstantToken<float>(1), new StringToken("="),
+                new LabelToken("t"), new StringToken(":")
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(0),
+                [res] = new ConstantToken<float>(0)
+            };
+            PrnExpressionExecutor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(0, store[res].Value);
+        }
+
+        [TestMethod]
+        public void ItMakesUnconditionalJumps()
+        {
+            var i = new IdentifierToken("i");
+            var expression = new Token[]
+            {
+                new LabelToken("t"), new StringToken(":"),
+                new LabelToken("test"), new UnconditionalJumpOperation(),
+                i, new ConstantToken<float>(1), new StringToken("="),
+                new LabelToken("test"), new StringToken(":")
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(0),
+            };
+            PrnExpressionExecutor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(0, store[i].Value);
         }
     }
 }

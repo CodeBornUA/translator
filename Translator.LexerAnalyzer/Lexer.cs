@@ -180,7 +180,7 @@ namespace Translator.LexerAnalyzer
             var name = CurrentToken.Substring.Trim(':');
             var existingLabel = Labels.FirstOrDefault(l => l.Name == name);
 
-            var label = Identifiers.FirstOrDefault(x => x.Name == name)?.Clone() as LabelToken;
+            var label = Labels.FirstOrDefault(x => x.Name == name)?.Clone() as LabelToken;
             if (label == null)
             {
                 label = new LabelToken(name)

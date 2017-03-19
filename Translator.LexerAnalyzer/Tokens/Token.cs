@@ -12,6 +12,7 @@ namespace Translator.LexerAnalyzer.Tokens
         public virtual string Substring { get; set; }
 
         public int Line { get; set; }
+        public object Tag { get; set; }
 
         public object Clone()
         {

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
+using Parser.Executor.Operations;
 using Translator.LexerAnalyzer;
 using Translator.LexerAnalyzer.Tokens;
 
@@ -106,6 +107,38 @@ end")).ToList();
             Assert.AreEqual(true, prn[3] is IdentifierToken);
             Assert.AreEqual(true, prn[4] is ConstantToken<float>);
             Assert.AreEqual("=", prn[5].Substring);
+        }
+
+        [TestMethod]
+        public void ItComposesPrnForIfStatement()
+        {
+            var lexer = new Lexer();
+            var sequence = lexer.ParseTokens(new StringReader(@"program test
+var ,a
+begin
+    m: 
+    if a == 1 then goto m
+end")).ToList();
+
+            var executor = new BasicExecutor();
+            var labels = lexer.Labels.ToList();
+            var prn = executor.GetPrn(sequence, labels);
+
+            //m: a 1 == _m1 CondFalse m Uncond _m1:
+            Assert.AreEqual(11, prn.Count);
+            Assert.AreEqual(true, prn[0] is LabelToken);
+            Assert.AreEqual(":", prn[1].Substring);
+            Assert.AreEqual(true, prn[2] is IdentifierToken);
+            Assert.AreEqual(true, prn[3] is ConstantToken<float>);
+            Assert.AreEqual("==", prn[4].Substring);
+            Assert.AreEqual(true, prn[5] is LabelToken);
+            Assert.AreEqual(true, prn[6] is ConditionalFalseJumpOperation);
+            Assert.AreEqual(true, prn[7] is LabelToken);
+            Assert.AreEqual(true, prn[8] is UnconditionalJumpOperation);
+            Assert.AreEqual(true, prn[9] is LabelToken);
+            Assert.AreEqual(":", prn[10].Substring);
+
+            Assert.IsTrue(labels.Any(x => x.Name == "_m2"));
         }
     }
 }

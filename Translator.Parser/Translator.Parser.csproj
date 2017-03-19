@@ -122,6 +122,9 @@
     <Compile Include="EnumeratorExtensions.cs" />
     <Compile Include="Executor\BasicExecutor.cs" />
     <Compile Include="Executor\IExecutor.cs" />
+    <Compile Include="Executor\IOperation.cs" />
+    <Compile Include="Executor\Operations\ConditionalFalseJumpOperation.cs" />
+    <Compile Include="Executor\Operations\UnconditionalJumpOperation.cs" />
     <Compile Include="Executor\PrnExpressionExecutor.cs" />
     <Compile Include="Executor\VariableStore.cs" />
     <Compile Include="ParserServiceModule.cs" />

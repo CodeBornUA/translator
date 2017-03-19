@@ -25,7 +25,8 @@ namespace Translator.UI
 
         private readonly Lexer _lexer;
         private readonly IParser _parser;
-        private VariableStore _variables;
+        private readonly IExecutor _executor;
+        private readonly VariableStore _variables;
 
 
         public MainWindow()
@@ -33,16 +34,9 @@ namespace Translator.UI
             _lexer = _scope.Resolve<Lexer>();
             _parser = _scope.Resolve<IParser>();
             _variables = _scope.Resolve<VariableStore>();
+            _executor = _scope.Resolve<IExecutor>();
 
             (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
-            (_parser as PrecedenceParser).PRNChanged += (token, prn) =>
-            {
-                if (token == PrecedenceParser.TokenEnum.Statement)
-                {
-                    MessageBox.Show($"PRN: {string.Join(", ", prn)}. Result: {PrnExpressionExecutor.ComputeExpression(prn, _variables)}");
-                    prn.Clear();
-                }
-            };
 
             ViewModel = _scope.Resolve<MainWindowViewModel>();
 
@@ -63,27 +57,28 @@ namespace Translator.UI
             try
             {
                 ViewModel.Reset();
+                _variables.Clear();
+
                 _lexer.ParseTokens(new StringReader(sourceTextBox.Text));
                 ViewModel.AllTokens = _lexer.Parsed;
                 ViewModel.Identifiers = _lexer.Identifiers;
                 ViewModel.Constants = _lexer.Constants;
                 ViewModel.Labels = _lexer.Labels.Distinct();
-                //_lexer.Validate(ViewModel.AllTokens.ToList());
+                _lexer.Validate(ViewModel.AllTokens.ToList());
 
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
-                
+
                 valid = valid && _parser.CheckSyntax(_lexer.Parsed);
-                if (valid)
+                if (!valid)
                 {
-                    MessageBox.Show("Program is valid");
-                    return;
+                    throw new Exception();
                 }
 
-                throw new Exception();
+                var labels = ViewModel.Labels.ToList();
+                _executor.Execute(ViewModel.AllTokens.ToList(), _variables, labels);
 
-                //var table = new PrecedenceTable();
-                //table.FillTable(PrecedenceParser.Grammar, (_parser as PrecedenceParser).Precedence);
-                //table.ShowDialog();
+                MessageBox.Show(
+                    $"Variable values:\r\n{string.Join(Environment.NewLine, _variables.Select(x => $"{x.Key.Name}: {x.Value.Value}"))}");
             }
             catch (Exception)
             {

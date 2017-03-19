@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor
@@ -10,8 +11,10 @@ namespace Parser.Executor
         private static readonly Dictionary<string, int> OperatorPriority = new Dictionary<string, int>()
         {
             ["("] = 0,
+            ["if"] = 0,
             [Environment.NewLine] = 0,
             [")"] = 1,
+            ["then"] = 1,
             ["="] = 2,
             ["or"] = 3,
             ["and"] = 4,
@@ -28,13 +31,13 @@ namespace Parser.Executor
             ["/"] = 8,
         };
 
-        public void Execute(IList<Token> tokenSequence, params string[] args)
+        public void Execute(IList<Token> tokenSequence, VariableStore variables, IList<LabelToken> labels, params string[] args)
         {
-            var prn = GetPrn(tokenSequence);
-            
+            var prn = GetPrn(tokenSequence, labels);
+            PrnExpressionExecutor.ComputeExpression(prn, variables);
         }
 
-        public IList<Token> GetPrn(IList<Token> tokenSequence)
+        public IList<Token> GetPrn(IList<Token> tokenSequence, IList<LabelToken> labels = null)
         {
             var begin = tokenSequence.IndexOf(tokenSequence.First(x => x.Substring == "begin"));
             var end = tokenSequence.IndexOf(tokenSequence.First(x => x.Substring == "end"));
@@ -46,11 +49,14 @@ namespace Parser.Executor
 
             foreach (var token in body)
             {
-                if (token is IdentifierToken || token is ConstantToken<float>)
+                if (token is IdentifierToken || token is ConstantToken<float> || token is LabelToken || token.Substring == ":")
                 {
                     prn.Add(token);
                     continue;
                 }
+
+                if (stack.Any(x => x.Substring == "if") && ProcessIf(token, stack, prn, labels))
+                    continue;
 
                 if (stack.Count == 0)
                 {
@@ -98,6 +104,51 @@ namespace Parser.Executor
             }
 
             return prn;
+        }
+
+        private static bool ProcessIf(Token token, Stack<Token> stack, IList<Token> prn, IList<LabelToken> labels)
+        {
+            if (token.Substring == "then")
+            {
+                var lastIf = stack.First(x => x.Substring == "if");
+
+                var label = new LabelToken($"_m{labels.Count + 1}");
+                lastIf.Tag = label;
+
+                labels.Add(label);
+
+                while (stack.Peek() != lastIf)
+                {
+                    prn.Add(stack.Pop());
+                }
+
+                prn.Add(label);
+                prn.Add(new ConditionalFalseJumpOperation());
+
+                return true;
+            }
+
+            if (token.Substring == "goto")
+            {
+                return true;
+            }
+
+            var ifToken = stack.FirstOrDefault(x => x.Substring == "if");
+            if (ifToken != null && token.Substring == "\r\n")
+            {
+                while (stack.Peek() != ifToken)
+                {
+                    prn.Add(stack.Pop());
+                }
+
+                prn.Add(new UnconditionalJumpOperation());
+                prn.Add(ifToken.Tag as LabelToken);     
+                prn.Add(new StringToken(":"));     
+
+                stack.Pop(); //Remove if
+                return true;
+            }
+            return false;
         }
     }
 }

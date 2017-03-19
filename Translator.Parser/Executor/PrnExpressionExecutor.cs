@@ -1,25 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor
 {
     public static class PrnExpressionExecutor
     {
-        public static float ComputeExpression(IList<Token> prn, VariableStore identifierValues)
+        public static float? ComputeExpression(IList<Token> prn, VariableStore identifierValues)
         {
             var stack = new Stack<Token>();
 
             foreach (var token in prn)
             {
                 ProcessIndentifiersConstants(token, stack);
-
                 ProcessUnarySubtraction(identifierValues, token, stack);
-
                 ProcessArithmeticOperations(identifierValues, token, stack);
+                ProcessAssignment(identifierValues, token, stack);
             }
 
-            var popped = stack.Pop();
-            return (popped as ConstantToken<float>)?.Value ?? identifierValues[popped as IdentifierToken].Value;
+            if (stack.Any())
+            {
+                var popped = stack.Pop();
+                return (popped as ConstantToken<float>)?.Value ?? identifierValues[popped as IdentifierToken].Value;
+            }
+
+            return null;
+        }
+
+        private static void ProcessAssignment(VariableStore identifierValues, Token token, Stack<Token> stack)
+        {
+            if (token.Substring == "=")
+            {
+                var operand2 = stack.Pop();
+                var operand1 = stack.Pop();
+
+                identifierValues[operand1 as IdentifierToken] = operand2 as ConstantToken<float>;
+            }
         }
 
         private static void ProcessArithmeticOperations(VariableStore identifierValues,

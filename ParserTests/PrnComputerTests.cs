@@ -70,5 +70,23 @@ namespace ParserTests
 
             Assert.AreEqual(4, result);
         }
+
+        [TestMethod]
+        public void ItMakesAssignments()
+        {
+            var i = new IdentifierToken("i");
+            var expression = new Token[]
+            {
+                i, new ConstantToken<float>(2), new StringToken("=") 
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(0)
+            };
+            PrnExpressionExecutor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(2, store[i].Value);
+        }
     }
 }

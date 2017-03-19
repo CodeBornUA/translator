@@ -90,7 +90,7 @@ namespace Parser.Precedence
                         try
                         {
                             var toReplace = Grammar.First(x => x.CompositeToken.SequenceEqual(popped));
-                            toReplace.OnReplaceAction?.Invoke(popped, prn);
+                            toReplace.OnReplaceAction?.Invoke(tokensArray.Skip(i-popped.Count).Take(popped.Count).ToList(), prn);
                             PRNChanged?.Invoke(toReplace.Token, prn);
                             stack.Push(toReplace.Token);
                         }

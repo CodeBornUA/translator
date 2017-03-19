@@ -9,7 +9,7 @@ namespace Parser.Precedence
         {
             private static readonly TokenEnum _idEnum = new TokenEnum(x => x.GetType() == typeof(IdentifierToken))
             {
-                Substring = "Identifier"
+                Substring = "Identifier",
             };
 
             private static readonly TokenEnum _newLine = new TokenEnum(x => x.Substring == "\r\n")

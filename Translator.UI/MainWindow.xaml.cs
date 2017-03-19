@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Autofac;
 using Parser;
+using Parser.Executor;
 using Parser.Precedence;
 using Serilog.Events;
 using Translator.LexerAnalyzer;
@@ -24,12 +25,25 @@ namespace Translator.UI
 
         private readonly Lexer _lexer;
         private readonly IParser _parser;
+        private VariableStore _variables;
 
 
         public MainWindow()
         {
             _lexer = _scope.Resolve<Lexer>();
             _parser = _scope.Resolve<IParser>();
+            _variables = _scope.Resolve<VariableStore>();
+
+            (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
+            (_parser as PrecedenceParser).PRNChanged += (token, prn) =>
+            {
+                if (token == PrecedenceParser.TokenEnum.Statement)
+                {
+                    MessageBox.Show($"PRN: {string.Join(", ", prn)}. Result: {PrnExpressionExecutor.ComputeExpression(prn, _variables)}");
+                    prn.Clear();
+                }
+            };
+
             ViewModel = _scope.Resolve<MainWindowViewModel>();
 
             InitializeComponent();
@@ -57,16 +71,7 @@ namespace Translator.UI
                 //_lexer.Validate(ViewModel.AllTokens.ToList());
 
                 var valid = !ViewModel.LogMessages.Any(x => x.Type >= LogEventLevel.Error);
-
-                (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
-                (_parser as PrecedenceParser).PRNChanged += (token, prn) =>
-                {
-                    if (token == PrecedenceParser.TokenEnum.Statement)
-                    {
-                        MessageBox.Show($"PRN: {string.Join(", ", prn)}");
-                        prn.Clear();
-                    }
-                };
+                
                 valid = valid && _parser.CheckSyntax(_lexer.Parsed);
                 if (valid)
                 {

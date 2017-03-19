@@ -31,6 +31,7 @@ namespace Parser.Executor
         public void Execute(IList<Token> tokenSequence, params string[] args)
         {
             var prn = GetPrn(tokenSequence);
+            
         }
 
         public IList<Token> GetPrn(IList<Token> tokenSequence)

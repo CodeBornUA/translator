@@ -210,7 +210,7 @@ namespace Translator.LexerAnalyzer
                 Log(LogEventLevel.Information, "Found token {0}", false, CurrentToken);
                 ReturnToken(CurrentToken, symbol);
             }
-            else if (symbol.Class.Class == Class.Colon || Parsed.Last().Substring == "goto")
+            else if (symbol.Class?.Class == Class.Colon || Parsed.Last().Substring == "goto")
             {
                 //Label
                 ReturnLabel(new StateMachine.Transition(lexerState, LexerState.LabelDefinition, symbol));

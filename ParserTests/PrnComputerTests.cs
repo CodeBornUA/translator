@@ -8,6 +8,17 @@ namespace ParserTests
     [TestClass]
     public class PrnComputerTests
     {
+        private string IfTestProgram = @"
+program test
+var ,a,b,c,res : float
+begin
+    t: a = 1
+    if a == 1 then goto test2
+    b = 2
+    test2: c = 3
+    res = (a+3)*2+c
+end";
+
         [DataTestMethod]
         [DataRow(2, 2, "+", 4)]
         [DataRow(4, 2, "-", 2)]

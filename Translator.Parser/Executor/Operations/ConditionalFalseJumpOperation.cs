@@ -5,23 +5,24 @@ namespace Parser.Executor.Operations
 {
     public class ConditionalFalseJumpOperation : Token, IOperation
     {
-        public void Execute(Stack<Token> stack, VariableStore variableStore, IList<Token> prn, ref int position)
+        public void Execute(ExecutorContext executorContext)
         {
-            var label = stack.Pop() as LabelToken;
+            var label = executorContext.Stack.Pop() as LabelToken;
 
-            var condition = stack.Pop();
+            var condition = executorContext.Stack.Pop();
             var conditionFloat = (condition as ConstantToken<float>)?.Value ??
-                                    variableStore[condition as IdentifierToken].Value;
+                                    executorContext.Store[condition as IdentifierToken].Value;
 
             if (conditionFloat == 0)
             {
-                for (var i = 0; i < prn.Count - 1; i++)
+                for (var i = 0; i < executorContext.Prn.Count - 1; i++)
                 {
-                    var token = prn[i];
-                    var nextToken = prn[i + 1];
+                    var token = executorContext.Prn[i];
+                    var nextToken = executorContext.Prn[i + 1];
                     if (token == label && nextToken.Substring == ":")
                     {
-                        position = i + 2;
+                        executorContext.NextPosition = i + 1;
+                        return;
                     }
                 }
             }

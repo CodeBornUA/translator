@@ -1,16 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor
 {
-    public static class PrnExpressionExecutor
+    public class PrnExpressionExecutor
     {
-        public static float? ComputeExpression(IList<Token> prn, VariableStore identifierValues)
+        public Stream InputStream { get; set; }
+        public Stream OutputStream { get; set; }
+
+        public PrnExpressionExecutor(Stream input = null, Stream output = null)
+        {
+            InputStream = input;
+            OutputStream = output;
+        }
+
+        public float? ComputeExpression(IList<Token> prn, VariableStore identifierValues)
         {
             var stack = new Stack<Token>();
 
+            var context = new ExecutorContext(stack, identifierValues, prn)
+            {
+                InputStream = InputStream,
+                OutputStream = OutputStream
+            };
             for (var index = 0; index < prn.Count; index++)
             {
                 var token = prn[index];
@@ -18,7 +34,11 @@ namespace Parser.Executor
                 if (operation != null)
                 {
                     var nextIndex = index + 1;
-                    operation.Execute(stack, identifierValues, prn, ref nextIndex);
+                    operation.Execute(context);
+                    if (context.NextPosition != null)
+                    {
+                        nextIndex = context.NextPosition.Value;
+                    }
 
                     index = nextIndex - 1;
                     continue;

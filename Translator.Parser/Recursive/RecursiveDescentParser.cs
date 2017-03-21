@@ -72,7 +72,8 @@ namespace Parser
             Logger.Information("Operator");
             return TokensSequence.AnyOf(ref arg, true,
                 seq => seq
-                    .LabelDef()
+                    .Label()
+                    .String(":")
                     .NewLine()
                     .Check(UnlabeledOperator),
                 seq => seq

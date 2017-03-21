@@ -36,8 +36,6 @@ namespace Translator.UI
             _variables = _scope.Resolve<VariableStore>();
             _executor = _scope.Resolve<IExecutor>();
 
-            (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
-
             ViewModel = _scope.Resolve<MainWindowViewModel>();
 
             InitializeComponent();

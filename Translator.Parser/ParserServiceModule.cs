@@ -10,7 +10,7 @@ namespace Parser
         {
             builder.RegisterType<VariableStore>().AsSelf().InstancePerLifetimeScope();
 
-            builder.RegisterType<PrecedenceParser>().As<IParser>();
+            builder.RegisterType<RecursiveDescentParser>().As<IParser>();
 
             builder.RegisterType<BasicExecutor>().As<IExecutor>();
         }

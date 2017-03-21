@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
@@ -13,6 +14,8 @@ namespace Parser.Executor
             ["("] = 0,
             ["if"] = 0,
             [Environment.NewLine] = 0,
+            ["writel"] = 0,
+            ["readl"] = 0,
             [")"] = 1,
             ["then"] = 1,
             ["="] = 2,
@@ -33,8 +36,13 @@ namespace Parser.Executor
 
         public void Execute(IList<Token> tokenSequence, VariableStore variables, IList<LabelToken> labels, params string[] args)
         {
-            var prn = GetPrn(tokenSequence, labels);
-            PrnExpressionExecutor.ComputeExpression(prn, variables);
+            using (var input = new MemoryStream())
+            using (var output = new MemoryStream())
+            {
+                var prn = GetPrn(tokenSequence, labels);
+                var prnExecutor = new PrnExpressionExecutor(input, output);
+                prnExecutor.ComputeExpression(prn, variables);
+            }
         }
 
         public IList<Token> GetPrn(IList<Token> tokenSequence, IList<LabelToken> labels = null)
@@ -56,6 +64,11 @@ namespace Parser.Executor
                 }
 
                 if (stack.Any(x => x.Substring == "if") && ProcessIf(token, stack, prn, labels))
+                    continue;
+
+                if (stack.Any(x => x.Substring == "writel") && ProcessWrite(token, stack, prn, labels))
+                    continue;
+                if (stack.Any(x => x.Substring == "readl") && ProcessRead(token, stack, prn, labels))
                     continue;
 
                 if (stack.Count == 0)
@@ -85,7 +98,7 @@ namespace Parser.Executor
                     }
 
                     var popped = stack.Pop();
-                    
+
                     //Do not write \r\n to resulting PRN
                     //TODO: do it inside of loops
                     if (popped.Substring != Environment.NewLine)
@@ -104,6 +117,54 @@ namespace Parser.Executor
             }
 
             return prn;
+        }
+
+        private bool ProcessWrite(Token token, Stack<Token> stack, List<Token> prn, IList<LabelToken> labels)
+        {
+            if (token.Substring == ",")
+            {
+                prn.Add(new WriteOperation());
+                return true;
+            }
+
+            if (token.Substring == Environment.NewLine)
+            {
+                while (stack.Peek().Substring != "writel")
+                {
+                    prn.Add(stack.Pop());
+                }
+
+                prn.Add(new WriteOperation());
+
+                stack.Pop(); //Remove writel
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ProcessRead(Token token, Stack<Token> stack, List<Token> prn, IList<LabelToken> labels)
+        {
+            if (token.Substring == ",")
+            {
+                prn.Add(new ReadOperation());
+                return true;
+            }
+
+            if (token.Substring == Environment.NewLine)
+            {
+                while (stack.Peek().Substring != "readl")
+                {
+                    prn.Add(stack.Pop());
+                }
+
+                prn.Add(new ReadOperation());
+
+                stack.Pop(); //Remove readl
+                return true;
+            }
+
+            return false;
         }
 
         private static bool ProcessIf(Token token, Stack<Token> stack, IList<Token> prn, IList<LabelToken> labels)
@@ -142,8 +203,8 @@ namespace Parser.Executor
                 }
 
                 prn.Add(new UnconditionalJumpOperation());
-                prn.Add(ifToken.Tag as LabelToken);     
-                prn.Add(new StringToken(":"));     
+                prn.Add(ifToken.Tag as LabelToken);
+                prn.Add(new StringToken(":"));
 
                 stack.Pop(); //Remove if
                 return true;

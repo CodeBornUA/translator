@@ -140,5 +140,43 @@ end")).ToList();
 
             Assert.IsTrue(labels.Any(x => x.Name == "_m2"));
         }
+
+        [TestMethod]
+        public void ItComposesPrnForReadStatement()
+        {
+            var lexer = new Lexer();
+            var sequence = lexer.ParseTokens(new StringReader(@"
+begin
+    readl(a)
+end")).ToList();
+
+            var executor = new BasicExecutor();
+            var labels = lexer.Labels.ToList();
+            var prn = executor.GetPrn(sequence, labels);
+
+            //a RD
+            Assert.AreEqual(2, prn.Count);
+            Assert.AreEqual(true, prn[0] is IdentifierToken);
+            Assert.AreEqual(true, prn[1] is ReadOperation);
+        }
+
+        [TestMethod]
+        public void ItComposesPrnForWriteStatement()
+        {
+            var lexer = new Lexer();
+            var sequence = lexer.ParseTokens(new StringReader(@"
+begin
+    writel(a)
+end")).ToList();
+
+            var executor = new BasicExecutor();
+            var labels = lexer.Labels.ToList();
+            var prn = executor.GetPrn(sequence, labels);
+
+            //a RD
+            Assert.AreEqual(2, prn.Count);
+            Assert.AreEqual(true, prn[0] is IdentifierToken);
+            Assert.AreEqual(true, prn[1] is WriteOperation);
+        }
     }
 }

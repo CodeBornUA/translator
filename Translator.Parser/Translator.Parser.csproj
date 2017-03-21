@@ -124,7 +124,10 @@
     <Compile Include="Executor\IExecutor.cs" />
     <Compile Include="Executor\IOperation.cs" />
     <Compile Include="Executor\Operations\ConditionalFalseJumpOperation.cs" />
+    <Compile Include="Executor\Operations\ExecutorContext.cs" />
+    <Compile Include="Executor\Operations\ReadOperation.cs" />
     <Compile Include="Executor\Operations\UnconditionalJumpOperation.cs" />
+    <Compile Include="Executor\Operations\WriteOperation.cs" />
     <Compile Include="Executor\PrnExpressionExecutor.cs" />
     <Compile Include="Executor\VariableStore.cs" />
     <Compile Include="ParserServiceModule.cs" />

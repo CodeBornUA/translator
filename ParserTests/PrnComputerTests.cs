@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
 using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
@@ -31,8 +32,8 @@ end";
                 new ConstantToken<float>(operand1), new ConstantToken<float>(operand2), new StringToken(operation)
             };
 
-            var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new VariableStore());
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, new VariableStore());
 
             Assert.AreEqual(expected, result);
         }
@@ -45,8 +46,8 @@ end";
                 new ConstantToken<float>(2), new ConstantToken<float>(4), new StringToken("-")
             };
 
-            var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new VariableStore());
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, new VariableStore());
 
             Assert.AreEqual(-2, result);
         }
@@ -59,8 +60,8 @@ end";
                 new ConstantToken<float>(2), new ConstantToken<float>(4), new StringToken("@"), new StringToken("+")
             };
 
-            var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new VariableStore());
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, new VariableStore());
 
             Assert.AreEqual(-2, result);
         }
@@ -74,11 +75,12 @@ end";
                 i, i, new StringToken("+")
             };
 
-            var result = PrnExpressionExecutor.ComputeExpression(expression,
-                new VariableStore()
-                {
-                    [i] = new ConstantToken<float>(2)
-                });
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, new VariableStore()
+            {
+                [i] = new ConstantToken<float>(2)
+            });
+            ;
 
             Assert.AreEqual(4, result);
         }
@@ -96,7 +98,8 @@ end";
             {
                 [i] = new ConstantToken<float>(0)
             };
-            PrnExpressionExecutor.ComputeExpression(expression, store);
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
 
             Assert.AreEqual(2, store[i].Value);
         }
@@ -118,7 +121,8 @@ end";
                 [i] = new ConstantToken<float>(iValue),
                 [res] = new ConstantToken<float>(0)
             };
-            PrnExpressionExecutor.ComputeExpression(expression, store);
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
 
             Assert.AreEqual(success ? 1 : 0, store[res].Value);
         }
@@ -140,7 +144,8 @@ end";
                 [i] = new ConstantToken<float>(0),
                 [res] = new ConstantToken<float>(0)
             };
-            PrnExpressionExecutor.ComputeExpression(expression, store);
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
 
             Assert.AreEqual(0, store[res].Value);
         }
@@ -159,11 +164,71 @@ end";
 
             var store = new VariableStore()
             {
-                [i] = new ConstantToken<float>(0),
+                [i] = new ConstantToken<float>(0)
             };
-            PrnExpressionExecutor.ComputeExpression(expression, store);
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
 
             Assert.AreEqual(0, store[i].Value);
+        }
+
+        [TestMethod]
+        public void ItWritesDataToOutput()
+        {
+            //Arrange
+            var i = new IdentifierToken("i");
+            var expression = new Token[]
+            {
+                i, new WriteOperation()
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(5)
+            };
+            using (var memoryStream = new MemoryStream())
+            {
+                var executor = new PrnExpressionExecutor(null, memoryStream);
+
+                //Act
+                var result = executor.ComputeExpression(expression, store);
+
+                //Assert
+                memoryStream.Position = 0;
+                Assert.AreEqual("i = 5", new StreamReader(memoryStream).ReadToEnd());
+            }
+        }
+
+        [TestMethod]
+        public void ItReadsDataFromInput()
+        {
+            //Arrange
+            var i = new IdentifierToken("i");
+            var expression = new Token[]
+            {
+                i, new ReadOperation()
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(0)
+            };
+            using (var memoryStream = new MemoryStream())
+            {
+                var writer = new StreamWriter(memoryStream);
+                writer.WriteLine("5");
+                writer.Flush();
+                memoryStream.Position = 0;
+
+                var executor = new PrnExpressionExecutor(memoryStream);
+
+                //Act
+                var result = executor.ComputeExpression(expression, store);
+
+                //Assert
+                memoryStream.Position = 0;
+                Assert.AreEqual(5, store[i].Value);
+            }
         }
     }
 }

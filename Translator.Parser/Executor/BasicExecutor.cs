@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows;
 using Parser.Executor.Operations;
 using Translator.LexerAnalyzer.Tokens;
 
@@ -39,9 +41,29 @@ namespace Parser.Executor
             using (var input = new MemoryStream())
             using (var output = new MemoryStream())
             {
+                if (args.Any())
+                {
+                    var writer = new StreamWriter(input);
+                    writer.Write(args.First());
+                    writer.Flush();
+                    input.Position = 0;
+                }
+
                 var prn = GetPrn(tokenSequence, labels);
+
+                foreach (var identifier in prn.OfType<IdentifierToken>())
+                {
+                    variables[identifier] = new ConstantToken<float>(0);
+                }
                 var prnExecutor = new PrnExpressionExecutor(input, output);
                 prnExecutor.ComputeExpression(prn, variables);
+
+                if (output.Length > 0)
+                {
+                    output.Position = 0;
+                    var str = new StreamReader(output).ReadToEnd();
+                    MessageBox.Show($"Output: {str}");
+                }
             }
         }
 

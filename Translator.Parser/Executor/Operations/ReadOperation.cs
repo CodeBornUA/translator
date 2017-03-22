@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Serilog;
+using Translator.Core;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor.Operations
@@ -11,7 +12,7 @@ namespace Parser.Executor.Operations
         {
             var operand = executorContext.Stack.Pop() as IdentifierToken;
 
-            var str = new StreamReader(executorContext.InputStream).ReadLine();
+            var str = new UnbufferedStreamReader(executorContext.InputStream).ReadLine();
             if (float.TryParse(str, out float res))
             {
                 executorContext.Store[operand] = new ConstantToken<float>(res);

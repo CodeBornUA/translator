@@ -73,7 +73,7 @@ namespace Translator.UI
                 }
 
                 var labels = ViewModel.Labels.ToList();
-                _executor.Execute(ViewModel.AllTokens.ToList(), _variables, labels);
+                _executor.Execute(ViewModel.AllTokens.ToList(), _variables, labels, inputTextBox.Text);
 
                 MessageBox.Show(
                     $"Variable values:\r\n{string.Join(Environment.NewLine, _variables.Select(x => $"{x.Key.Name}: {x.Value.Value}"))}");

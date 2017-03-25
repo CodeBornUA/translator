@@ -35,14 +35,14 @@ namespace Translator.UI
             _variables = _scope.Resolve<VariableStore>();
 
             (_parser as PrecedenceParser).StackChanged += MainWindow_StackChanged;
-            (_parser as PrecedenceParser).PRNChanged += (token, prn) =>
-            {
-                if (token == PrecedenceParser.TokenEnum.Statement)
-                {
-                    MessageBox.Show($"PRN: {string.Join(", ", prn)}. Result: {PrnExpressionExecutor.ComputeExpression(prn, _variables)}");
-                    prn.Clear();
-                }
-            };
+            //(_parser as PrecedenceParser).PRNChanged += (token, prn) =>
+            //{
+            //    if (token == PrecedenceParser.TokenEnum.Statement)
+            //    {
+            //        MessageBox.Show($"PRN: {string.Join(", ", prn)}. Result: {PrnExpressionExecutor.ComputeExpression(prn, _variables)}");
+            //        prn.Clear();
+            //    }
+            //};
 
             ViewModel = _scope.Resolve<MainWindowViewModel>();
 
@@ -76,8 +76,15 @@ namespace Translator.UI
                 if (valid)
                 {
                     MessageBox.Show("Program is valid");
+
+                    _variables[ViewModel.Identifiers.First(x => x.Name == "a")] = new ConstantToken<float>(1);
+                    _variables[ViewModel.Identifiers.First(x => x.Name == "b")] = new ConstantToken<float>(2);
+                    _variables[ViewModel.Identifiers.First(x => x.Name == "c")] = new ConstantToken<float>(3);
+                    MessageBox.Show(PrnExpressionExecutor.ComputeExpression((_parser as PrecedenceParser).Prn, _variables).Value.ToString());
+
                     return;
                 }
+
 
                 throw new Exception();
 
@@ -93,12 +100,13 @@ namespace Translator.UI
         }
 
         private void MainWindow_StackChanged(Stack<Token> stack, PrecedenceRelation relation,
-            ArraySegment<Token> segment)
+            ArraySegment<Token> segment, List<Token> prn)
         {
             ViewModel.PrecedenceParsingSteps.Add(new PrecedenceParsingStep
             {
                 StackContent = stack.Aggregate(string.Empty, (agr, cur) => string.Join(" ", cur.Substring, agr)).Trim(),
                 InputTokens = segment.Aggregate(string.Empty, (agr, cur) => string.Join(" ", agr, cur.Substring)).Trim(),
+                Prn = prn.Aggregate(string.Empty, (agr, cur) => string.Join(" ", agr, cur.Substring)).Trim(),
                 Relation = relation.ToString()
             });
         }

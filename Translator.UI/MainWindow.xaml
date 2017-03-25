@@ -74,6 +74,7 @@
                         <DataGridTextColumn Header="Stack" Width="2*" Binding="{Binding StackContent}" />
                         <DataGridTextColumn Header="Relation" Width="*" Binding="{Binding Relation}" />
                         <DataGridTextColumn Header="Input tokens" Width="3*" Binding="{Binding InputTokens}" />
+                        <DataGridTextColumn Header="PRN" Width="3*" Binding="{Binding Prn}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

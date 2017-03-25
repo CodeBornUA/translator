@@ -73,7 +73,7 @@ namespace Parser.Precedence
 
             var i = 0;
             var popped = new List<Token>();
-            var prn = new List<Token>();
+            Prn = new List<Token>();
             while (stack.Peek().Type != TokenType.Axiom || array[i] != TokenEnum.Sharp)
                 try
                 {
@@ -90,8 +90,8 @@ namespace Parser.Precedence
                         try
                         {
                             var toReplace = Grammar.First(x => x.CompositeToken.SequenceEqual(popped));
-                            toReplace.OnReplaceAction?.Invoke(tokensArray.Skip(i-popped.Count).Take(popped.Count).ToList(), prn);
-                            PRNChanged?.Invoke(toReplace.Token, prn);
+                            toReplace.OnReplaceAction?.Invoke(tokensArray.Skip(i-popped.Count).Take(popped.Count).ToList(), Prn);
+                            PRNChanged?.Invoke(toReplace.Token, Prn);
                             stack.Push(toReplace.Token);
                         }
                         catch (Exception exc)
@@ -107,7 +107,7 @@ namespace Parser.Precedence
                     }
 
                     OnStackChanged(stack, relation.Value,
-                        new ArraySegment<Token>(tokensArray, i, tokensArray.Length - i));
+                        new ArraySegment<Token>(tokensArray, i, tokensArray.Length - i), Prn);
                 }
                 catch
                 {
@@ -119,7 +119,9 @@ namespace Parser.Precedence
             return true;
         }
 
-        public event Action<Stack<Token>, PrecedenceRelation, ArraySegment<Token>> StackChanged;
+        public List<Token> Prn { get; set; }
+
+        public event Action<Stack<Token>, PrecedenceRelation, ArraySegment<Token>, List<Token>> StackChanged;
         public event Action<Token, List<Token>> PRNChanged;
 
         private void ConfigureObservers(IObservable<LogEvent> obj)
@@ -129,9 +131,9 @@ namespace Parser.Precedence
         }
 
         protected virtual void OnStackChanged(Stack<Token> stack, PrecedenceRelation relation,
-            ArraySegment<Token> inputTokens)
+            ArraySegment<Token> inputTokens, List<Token> prn)
         {
-            StackChanged?.Invoke(stack, relation, inputTokens);
+            StackChanged?.Invoke(stack, relation, inputTokens, prn);
         }
 
         protected virtual void OnPrnChanged(Token tokenReplaced, List<Token> prn)

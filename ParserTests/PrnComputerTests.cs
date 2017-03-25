@@ -128,6 +128,49 @@ end";
         }
 
         [TestMethod]
+        public void ItComputesComplexExpressions()
+        {
+            var i = new IdentifierToken("i");
+            var res = new IdentifierToken("res");
+            var expression = new Token[]
+            {
+                res, new StringToken("["), i, new ConstantToken<float>(2), new StringToken("=="), i, new ConstantToken<float>(3), new StringToken("<"), new StringToken("and"),
+                new StringToken("]"), new StringToken("=")
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(2),
+                [res] = new ConstantToken<float>(0)
+            };
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(1, store[res].Value);
+        }
+
+        [TestMethod]
+        public void ItComputesNegatedLogicalExpressions()
+        {
+            var i = new IdentifierToken("i");
+            var res = new IdentifierToken("res");
+            var expression = new Token[]
+            {
+                res, i, new ConstantToken<float>(2), new StringToken("=="), new StringToken("!"), new StringToken("=")
+            };
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(2),
+                [res] = new ConstantToken<float>(1)
+            };
+            var executor = new PrnExpressionExecutor();
+            var result = executor.ComputeExpression(expression, store);
+
+            Assert.AreEqual(0, store[res].Value);
+        }
+
+        [TestMethod]
         public void ItMakesConditionalJumps()
         {
             var i = new IdentifierToken("i");

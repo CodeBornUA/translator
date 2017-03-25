@@ -14,5 +14,10 @@ namespace Parser.Executor.Operations
             var encoded = Encoding.Default.GetBytes(text);
             executorContext.OutputStream.Write(encoded, 0, encoded.Length);
         }
+
+        public override string ToString()
+        {
+            return "WR";
+        }
     }
 }

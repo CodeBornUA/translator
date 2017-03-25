@@ -14,16 +14,18 @@ namespace Parser.Executor
         private static readonly Dictionary<string, int> OperatorPriority = new Dictionary<string, int>()
         {
             ["("] = 0,
+            ["["] = 0,
             ["if"] = 0,
             [Environment.NewLine] = 0,
             ["writel"] = 0,
             ["readl"] = 0,
             [")"] = 1,
+            ["]"] = 1,
             ["then"] = 1,
             ["="] = 2,
             ["or"] = 3,
             ["and"] = 4,
-            ["not"] = 5,
+            ["!"] = 5,
             [">"] = 6,
             ["<"] = 6,
             ["<="] = 6,
@@ -34,6 +36,7 @@ namespace Parser.Executor
             ["-"] = 7,
             ["*"] = 8,
             ["/"] = 8,
+            ["@"] = 8
         };
 
         public void Execute(IList<Token> tokenSequence, VariableStore variables, IList<LabelToken> labels, params string[] args)
@@ -50,6 +53,7 @@ namespace Parser.Executor
                 }
 
                 var prn = GetPrn(tokenSequence, labels);
+                MessageBox.Show($"PRN: {string.Join(" ", prn)}");
 
                 foreach (var identifier in prn.OfType<IdentifierToken>())
                 {
@@ -72,16 +76,24 @@ namespace Parser.Executor
             var begin = tokenSequence.IndexOf(tokenSequence.First(x => x.Substring == "begin"));
             var end = tokenSequence.IndexOf(tokenSequence.First(x => x.Substring == "end"));
 
-            var body = tokenSequence.Skip(begin + 1).Take(end - begin - 1);
+            var body = tokenSequence.Skip(begin + 1).Take(end - begin - 1).ToList();
 
             var prn = new List<Token>();
             var stack = new Stack<Token>();
 
-            foreach (var token in body)
+            for (var i = 0; i < body.Count; i++)
             {
-                if (token is IdentifierToken || token is ConstantToken<float> || token is LabelToken || token.Substring == ":")
+                var token = body[i];
+                if (token is IdentifierToken || token is ConstantToken<float> || token is LabelToken ||
+                    token.Substring == ":")
                 {
                     prn.Add(token);
+                    continue;
+                }
+
+                if (token.Substring == "-" && i > 0 && !(body[i-1] is IdentifierToken) && !(body[i-1] is ConstantToken<float>))
+                {
+                    stack.Push(new StringToken("@"));
                     continue;
                 }
 
@@ -107,14 +119,15 @@ namespace Parser.Executor
                     {
                         prn.Add(pop);
                         pop = stack.Pop();
-                    };
+                    }
+                    ;
                     continue;
                 }
 
                 while (stack.Any() && OperatorPriority[stack.Peek().Substring] >= OperatorPriority[token.Substring])
                 {
                     //Opening brace doesn't push anything
-                    if (token.Substring == "(")
+                    if (token.Substring == "(" || token.Substring == "[")
                     {
                         break;
                     }
@@ -127,7 +140,7 @@ namespace Parser.Executor
                         prn.Add(popped);
                 }
 
-                if (token.Substring != ")" && token.Substring != Environment.NewLine)
+                if (token.Substring != ")" && token.Substring != Environment.NewLine && token.Substring != "]")
                 {
                     stack.Push(token);
                 }
@@ -208,6 +221,18 @@ namespace Parser.Executor
                 prn.Add(label);
                 prn.Add(new ConditionalFalseJumpOperation());
 
+                return true;
+            }
+
+            if (token.Substring == "]")
+            {
+                //) pushes anything not farther than [
+                var pop = stack.Pop();
+                while (pop.Substring != "[")
+                {
+                    prn.Add(pop);
+                    pop = stack.Pop();
+                };
                 return true;
             }
 

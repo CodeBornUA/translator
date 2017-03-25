@@ -22,5 +22,10 @@ namespace Parser.Executor.Operations
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return "UNCOND";
+        }
     }
 }

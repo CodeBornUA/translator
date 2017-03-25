@@ -29,5 +29,10 @@ namespace Parser.Executor.Operations
         }
 
         public override TokenType Type { get; set; }
+
+        public override string ToString()
+        {
+            return "COND";
+        }
     }
 }

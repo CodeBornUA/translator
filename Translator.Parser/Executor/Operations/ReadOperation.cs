@@ -22,5 +22,10 @@ namespace Parser.Executor.Operations
                 Log.Error("There is not a correct number in the input stream");
             }
         }
+
+        public override string ToString()
+        {
+            return "RD";
+        }
     }
 }

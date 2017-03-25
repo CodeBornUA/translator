@@ -53,6 +53,7 @@ namespace Parser.Executor
                 ProcessUnarySubtraction(identifierValues, token, stack);
                 ProcessBoolean(identifierValues, token, stack);
                 ProcessArithmeticOperations(identifierValues, token, stack);
+                ProcessLogics(identifierValues, token, stack);
                 ProcessAssignment(identifierValues, token, stack);
             }
 
@@ -76,6 +77,43 @@ namespace Parser.Executor
                 var operand1 = stack.Pop();
 
                 identifierValues[operand1 as IdentifierToken] = operand2 as ConstantToken<float>;
+            }
+        }
+
+        private void ProcessLogics(VariableStore identifierValues, Token token, Stack<Token> stack)
+        {
+            if (token.Substring == "and" || token.Substring == "or")
+            {
+                var operand2 = stack.Pop();
+                var operand1 = stack.Pop();
+
+                var boolOperand2 = ((operand2 as ConstantToken<float>)?.Value ??
+                                     identifierValues[operand2 as IdentifierToken].Value) > 0;
+                var boolOperand1 = ((operand1 as ConstantToken<float>)?.Value ??
+                                    identifierValues[operand1 as IdentifierToken].Value) > 0;
+
+                float localResult = 0;
+                switch (token.Substring)
+                {
+                    case "and":
+                        localResult = boolOperand1 && boolOperand2 ? 1 : 0;
+                        break;
+                    case "or":
+                        localResult = boolOperand1 || boolOperand2 ? 1 : 0;
+                        break;
+                }
+                stack.Push(new ConstantToken<float>(localResult));
+            }
+
+            if (token.Substring == "!")
+            {
+                var operand = stack.Pop();
+
+                var boolOperand = ((operand as ConstantToken<float>)?.Value ??
+                                     identifierValues[operand as IdentifierToken].Value) > 0;
+
+                var result = boolOperand? 0f : 1f;
+                stack.Push(new ConstantToken<float>(result));
             }
         }
 

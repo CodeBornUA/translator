@@ -116,6 +116,9 @@
                     </Grid>
                 </Grid>
             </TabItem>
+            <TabItem Header="Input">
+                <TextBox AcceptsReturn="True" x:Name="inputTextBox"></TextBox>
+            </TabItem>
         </TabControl>
         <Button x:Name="analyzeButton" Click="AnalyzeButton_OnClick" Content="Analyze" HorizontalAlignment="Center"
                 Grid.Row="1" VerticalAlignment="Center" Width="75" />

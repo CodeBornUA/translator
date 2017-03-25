@@ -46,6 +46,7 @@
     <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.2.4.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
@@ -122,6 +123,12 @@
     <Compile Include="EnumeratorExtensions.cs" />
     <Compile Include="Executor\BasicExecutor.cs" />
     <Compile Include="Executor\IExecutor.cs" />
+    <Compile Include="Executor\IOperation.cs" />
+    <Compile Include="Executor\Operations\ConditionalFalseJumpOperation.cs" />
+    <Compile Include="Executor\Operations\ExecutorContext.cs" />
+    <Compile Include="Executor\Operations\ReadOperation.cs" />
+    <Compile Include="Executor\Operations\UnconditionalJumpOperation.cs" />
+    <Compile Include="Executor\Operations\WriteOperation.cs" />
     <Compile Include="Executor\PrnExpressionExecutor.cs" />
     <Compile Include="Executor\VariableStore.cs" />
     <Compile Include="ParserServiceModule.cs" />

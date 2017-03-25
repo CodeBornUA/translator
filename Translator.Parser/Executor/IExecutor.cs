@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor
 {
     public interface IExecutor
     {
-        void Execute(IList<Token> tokenSequence, params string[] args);
+        void Execute(IList<Token> tokenSequence, VariableStore variables, IList<LabelToken> labels, params string[] args);
     }
 }

@@ -36,7 +36,16 @@ namespace Translator.UI
             _variables = _scope.Resolve<VariableStore>();
             _executor = _scope.Resolve<IExecutor>();
 
-            ViewModel = _scope.Resolve<MainWindowViewModel>();
+            ViewModel = _scope.Resolve<Func<VariableStore, MainWindowViewModel>>()(_variables);
+
+            _executor.Output += s => outputTextBox.Text += s;
+            _executor.ComputationStep += (s, i, stack) => ViewModel.ComputationSteps.Add(new ComputationStep()
+            {
+                Before = string.Join(" ", s.Take(i)),
+                Highlighted = s.ElementAt(i).ToString(),
+                After = string.Join(" ", s.Skip(i + 1)),
+                Stack = string.Join(" ", stack)
+            });
 
             InitializeComponent();
         }
@@ -56,6 +65,7 @@ namespace Translator.UI
             {
                 ViewModel.Reset();
                 _variables.Clear();
+                outputTextBox.Text = null;
 
                 _lexer.ParseTokens(new StringReader(sourceTextBox.Text));
                 ViewModel.AllTokens = _lexer.Parsed;
@@ -73,10 +83,12 @@ namespace Translator.UI
                 }
 
                 var labels = ViewModel.Labels.ToList();
-                _executor.Execute(ViewModel.AllTokens.ToList(), _variables, labels, inputTextBox.Text);
+                var context = new Context(ViewModel.AllTokens.ToList(), _variables, labels);
+                _executor.Execute(context, inputTextBox.Text);
 
-                MessageBox.Show(
-                    $"Variable values:\r\n{string.Join(Environment.NewLine, _variables.Select(x => $"{x.Key.Name}: {x.Value.Value}"))}");
+                ViewModel.UpdateIdValues();
+
+                MessageBox.Show("Program is valid");
             }
             catch (Exception)
             {

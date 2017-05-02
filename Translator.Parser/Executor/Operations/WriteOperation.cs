@@ -10,7 +10,9 @@ namespace Parser.Executor.Operations
         {
             var operand = executorContext.Stack.Pop() as IdentifierToken;
 
-            var text = $"{operand.Name} = {executorContext.Store[operand].Value}";
+            var text = $"{operand.Name} = {executorContext.Store[operand].Value}\r\n";
+            executorContext.WrittenString = text;
+
             var encoded = Encoding.Default.GetBytes(text);
             executorContext.OutputStream.Write(encoded, 0, encoded.Length);
         }

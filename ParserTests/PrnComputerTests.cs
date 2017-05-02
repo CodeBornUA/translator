@@ -1,7 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parser.Executor;
 using Parser.Executor.Operations;
+using Serilog;
+using Translator.LexerAnalyzer;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace ParserTests
@@ -91,7 +95,7 @@ end";
             var i = new IdentifierToken("i");
             var expression = new Token[]
             {
-                i, new ConstantToken<float>(2), new StringToken("=") 
+                i, new ConstantToken<float>(2), new StringToken("=")
             };
 
             var store = new VariableStore()
@@ -272,6 +276,49 @@ end";
                 memoryStream.Position = 0;
                 Assert.AreEqual(5, store[i].Value);
             }
+        }
+
+        [TestMethod]
+        public void ItExecutesLoop()
+        {
+            var logger = new LoggerConfiguration().CreateLogger();
+
+            //Arrange
+            var i = new IdentifierToken("i");
+            var j = new IdentifierToken("j");
+            var res = new IdentifierToken("sum");
+            var lexer = new Lexer(logger);
+            var sequence = lexer.ParseTokens(new StringReader(@"
+begin
+    do i=1 to 5
+        do j=2 to 7
+            sum = sum + i*j
+        next
+    next
+end")).ToList();
+
+            var store = new VariableStore()
+            {
+                [i] = new ConstantToken<float>(0),
+                [j] = new ConstantToken<float>(0),
+                [res] = new ConstantToken<float>(0)
+            };
+
+            var prnProvider = new BasicExecutor(logger);
+            var labels = lexer.Labels.ToList();
+            var prn = prnProvider.PrnComposer.GetPrn(sequence, labels, store);
+
+
+            var executor = new PrnExpressionExecutor();
+
+            //Act
+            var result = executor.ComputeExpression(prn, store);
+
+            //Assert
+            Assert.AreEqual(5 + 1, store[i].Value);
+            Assert.AreEqual(7 + 1, store[j].Value);
+            Assert.AreEqual(405, store[res].Value);
+
         }
     }
 }

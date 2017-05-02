@@ -17,8 +17,8 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="10*" />
-            <RowDefinition Height="*" />
+            <RowDefinition />
+            <RowDefinition Height="28.8" />
         </Grid.RowDefinitions>
         <TabControl>
             <TabItem Header="Code">
@@ -38,11 +38,11 @@
             </TabItem>
             <TabItem Header="Id table">
                 <DataGrid Loaded="SetMinWidth" IsReadOnly="True"
-                          ItemsSource="{Binding ViewModel.Identifiers, ElementName=window}" AutoGenerateColumns="False">
+                          ItemsSource="{Binding ViewModel.IdValues, ElementName=window}" AutoGenerateColumns="False">
                     <DataGrid.Columns>
-                        <DataGridCheckBoxColumn Header="Is Label" Binding="{Binding IsLabel}" />
-                        <DataGridTextColumn Header="Index" Binding="{Binding Index}" />
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                        <DataGridTextColumn Header="Index" Binding="{Binding Item1.Index}" />
+                        <DataGridTextColumn Header="Name" Binding="{Binding Item1.Name}" />
+                        <DataGridTextColumn Header="Value" Binding="{Binding Item2.Value}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
@@ -66,15 +66,28 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
-            <TabItem Header="Precedence parse table">
-                <DataGrid IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                          ItemsSource="{Binding ViewModel.PrecedenceParsingSteps, ElementName=window}"
-                          AutoGenerateColumns="False">
+            <TabItem Header="Computation">
+                <DataGrid Loaded="SetMinWidth" IsReadOnly="True"
+                          ItemsSource="{Binding ViewModel.ComputationSteps, ElementName=window}" AutoGenerateColumns="False">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Stack" Width="2*" Binding="{Binding StackContent}" />
-                        <DataGridTextColumn Header="Relation" Width="*" Binding="{Binding Relation}" />
-                        <DataGridTextColumn Header="Input tokens" Width="3*" Binding="{Binding InputTokens}" />
-                        <DataGridTextColumn Header="PRN" Width="3*" Binding="{Binding Prn}" />
+                        <DataGridTemplateColumn Header="PRN">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <RichTextBox>
+                                        <RichTextBox.Document>
+                                            <FlowDocument>
+                                                <Paragraph>
+                                                    <Run Foreground="Black" Text="{Binding Before}" />
+                                                    <Run Background="Red" Foreground="White" FontSize="16" Text="{Binding Highlighted}" />
+                                                    <Run Foreground="Black" Text="{Binding After}" />
+                                                </Paragraph>
+                                            </FlowDocument>
+                                        </RichTextBox.Document>
+                                    </RichTextBox>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Stack" Binding="{Binding Stack}"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
@@ -118,6 +131,9 @@
             </TabItem>
             <TabItem Header="Input">
                 <TextBox AcceptsReturn="True" x:Name="inputTextBox"></TextBox>
+            </TabItem>
+            <TabItem Header="Output">
+                <TextBox AcceptsReturn="True" x:Name="outputTextBox"></TextBox>
             </TabItem>
         </TabControl>
         <Button x:Name="analyzeButton" Click="AnalyzeButton_OnClick" Content="Analyze" HorizontalAlignment="Center"

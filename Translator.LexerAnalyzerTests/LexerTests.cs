@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Translator.LexerAnalyzer;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Translator.Tests
+namespace Translator.LexerAnalyzerTests
 {
     [TestClass]
     public class LexerTests
@@ -20,7 +20,6 @@ end";
         public string TestProgram = @"program test
 var float a, float b, float c
 begin
-    readl(a, b)
     lbl:
     a = a - 1
     if a>0 then goto lbl

@@ -2,7 +2,7 @@
 using System.Linq;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Parser
+namespace Parser.StateMachine
 {
     public class StackStateMachine
     {

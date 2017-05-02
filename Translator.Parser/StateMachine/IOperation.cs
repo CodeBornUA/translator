@@ -1,4 +1,4 @@
-﻿namespace Parser
+﻿namespace Parser.StateMachine
 {
     internal interface IOperation
     {

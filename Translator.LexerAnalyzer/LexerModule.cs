@@ -8,7 +8,6 @@ namespace Translator.LexerAnalyzer
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterInstance(new LoggerFactory().AddSerilog()).As<ILoggerFactory>();
             builder.RegisterType<Lexer>().AsSelf();
         }
     }

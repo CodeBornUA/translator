@@ -1,7 +1,7 @@
 ﻿using System;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Parser
+namespace Parser.StateMachine
 {
     public class MachineTransition
     {

@@ -1,23 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Parser.Executor;
 using Serilog.Events;
 using Translator.LexerAnalyzer.Tokens;
+using Translator.UI.Logging;
 
 namespace Translator.UI
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
+        private readonly VariableStore _store;
         private IEnumerable<Token> _allTokens;
         private IEnumerable<ConstantToken<float>> _constants;
         private IEnumerable<IdentifierToken> _identifiers;
         private IEnumerable<LabelToken> _labels;
         private LogEventLevel _level;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(VariableStore store)
         {
+            _store = store;
             LogMessages.CollectionChanged += (sender, args) => { OnPropertyChanged(nameof(LogMessagesEnumerable)); };
         }
 
@@ -40,6 +45,13 @@ namespace Translator.UI
                 OnPropertyChanged();
             }
         }
+
+        public IEnumerable<Tuple<IdentifierToken, ConstantToken<float>>> IdValues => _identifiers == null
+            ? null
+            : (from id in Identifiers
+                join value in _store on id.Name equals value.Key.Name into vs
+                from v in vs.DefaultIfEmpty()
+                select new Tuple<IdentifierToken, ConstantToken<float>>(id, v.Value));
 
         public IEnumerable<ConstantToken<float>> Constants
         {
@@ -85,6 +97,8 @@ namespace Translator.UI
 
         public ObservableCollection<PrecedenceParsingStep> PrecedenceParsingSteps { get; } =
             new ObservableCollection<PrecedenceParsingStep>();
+        public ObservableCollection<ComputationStep> ComputationSteps { get; } =
+            new ObservableCollection<ComputationStep>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -97,6 +111,12 @@ namespace Translator.UI
         {
             LogMessages.Clear();
             PrecedenceParsingSteps.Clear();
+            ComputationSteps.Clear();
+        }
+
+        public void UpdateIdValues()
+        {
+            OnPropertyChanged(nameof(IdValues));
         }
     }
 }

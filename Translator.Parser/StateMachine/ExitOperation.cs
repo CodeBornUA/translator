@@ -1,7 +1,7 @@
 ﻿using System;
 using Serilog;
 
-namespace Parser
+namespace Parser.StateMachine
 {
     public abstract class ExitOperation : IOperation
     {

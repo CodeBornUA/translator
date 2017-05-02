@@ -1,6 +1,6 @@
 ﻿using Serilog.Events;
 
-namespace Translator.UI
+namespace Translator.UI.Logging
 {
     public class ErrorItem
     {

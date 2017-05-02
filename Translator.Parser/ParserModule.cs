@@ -1,10 +1,12 @@
 ﻿using Autofac;
 using Parser.Executor;
 using Parser.Precedence;
+using Parser.Recursive;
+using Parser.StateMachine;
 
 namespace Parser
 {
-    public class ParserServiceModule : Module
+    public class ParserModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using Translator.Core;
 using Translator.LexerAnalyzer.Tokens;
@@ -21,15 +20,14 @@ namespace Translator.LexerAnalyzer
     {
         private readonly IList<SymbolClass> _classes;
         private readonly LexerValidator _lexerValidator;
-        private readonly IObserver<LogEvent> _logObserver;
         private readonly StateMachine _machine;
 
         private readonly IList<string> _tokens;
         private StringToken _currentToken;
 
-        public Lexer(IObserver<LogEvent> logObserver = null)
+        public Lexer(ILogger logger = null)
         {
-            _logObserver = logObserver;
+            Logger = logger;
             Configure();
 
             _machine = CreateMachine();
@@ -44,7 +42,7 @@ namespace Translator.LexerAnalyzer
             _lexerValidator = new LexerValidator(this);
         }
 
-        public Logger Logger { get; set; }
+        public ILogger Logger { get; set; }
 
         public StringToken CurrentToken
         {
@@ -320,18 +318,6 @@ namespace Translator.LexerAnalyzer
                 .AddEmbeddedJsonFile(assembly, "grammar.json");
 
             Configuration = builder.Build();
-
-            // Create the container builder.
-            Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.Observers(ConfigureObservers)
-                .CreateLogger();
-        }
-
-        private void ConfigureObservers(IObservable<LogEvent> observable)
-        {
-            if (_logObserver != null)
-                observable.Subscribe(_logObserver);
         }
 
         #endregion

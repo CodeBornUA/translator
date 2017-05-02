@@ -6,7 +6,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Parser
+namespace Parser.Recursive
 {
     public class TokensSequence : Collection<Token>
     {

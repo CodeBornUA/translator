@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Parser
+namespace Parser.Recursive
 {
     public class RecursiveDescentParser : IParser
     {
@@ -115,6 +116,52 @@ namespace Parser
                     .String("then")
                     .String("goto")
                     .Label());
+        }
+
+        private bool Program(IEnumerable<Token> tokens)
+        {
+            var enumerator = tokens.GetEnumerator();
+
+            Token GetNext()
+            {
+                enumerator.MoveNext();
+                return enumerator.Current;
+            }
+
+            bool success = false;
+
+            var current = GetNext();
+            if (current.Substring == "program")
+            {
+                current = GetNext();
+                if (current is IdentifierToken)
+                {
+                    current = GetNext();
+                    if (current.Substring == Environment.NewLine)
+                    {
+                        current = GetNext();
+                        if (current.Substring == "begin")
+                        {
+                            if (OperatorList(ref enumerator))
+                            {
+                                current = GetNext();
+                                if (current.Substring == "end")
+                                {
+                                    success = true;
+                                }
+                                //Error end is expected here
+                            }
+                            //Error - list of operators
+                        }
+                        //Error - begin is expected here
+                    }
+                    //Error - new line is expected here
+                }
+                //Error - identifier is expected here
+            }
+            //Error - keyword 'program' is expected here
+
+            return success;
         }
 
         private bool LogicalExpression(ref IEnumerator<Token> enumerator)

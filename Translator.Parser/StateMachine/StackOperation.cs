@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Parser
+namespace Parser.StateMachine
 {
     public abstract class StackOperation : IOperation
     {

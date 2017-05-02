@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Parser.Executor.Operations;
+using Serilog;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor
@@ -11,11 +12,17 @@ namespace Parser.Executor
     {
         public Stream InputStream { get; set; }
         public Stream OutputStream { get; set; }
+        public ILogger Logger { get; }
 
-        public PrnExpressionExecutor(Stream input = null, Stream output = null)
+        public event Action<string> Output;
+
+        public event Action<IList<Token>, int, Stack<Token>> ComputationStep;
+
+        public PrnExpressionExecutor(Stream input = null, Stream output = null, ILogger logger = null)
         {
             InputStream = input;
             OutputStream = output;
+            Logger = logger;
         }
 
         public float? ComputeExpression(IList<Token> prn, VariableStore identifierValues)
@@ -25,10 +32,13 @@ namespace Parser.Executor
             var context = new ExecutorContext(stack, identifierValues, prn)
             {
                 InputStream = InputStream,
-                OutputStream = OutputStream
+                OutputStream = OutputStream,
+                Logger = Logger
             };
             for (var index = 0; index < prn.Count; index++)
             {
+                ComputationStep?.Invoke(prn, index, stack);
+
                 var token = prn[index];
                 var operation = token as IOperation;
                 if (operation != null)
@@ -38,6 +48,13 @@ namespace Parser.Executor
                     if (context.NextPosition != null)
                     {
                         nextIndex = context.NextPosition.Value;
+                        context.NextPosition = null;
+                    }
+
+                    if (context.WrittenString != null)
+                    {
+                        Output?.Invoke(context.WrittenString);
+                        context.WrittenString = null;
                     }
 
                     index = nextIndex - 1;

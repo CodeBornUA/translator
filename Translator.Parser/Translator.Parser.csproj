@@ -122,6 +122,7 @@
   <ItemGroup>
     <Compile Include="EnumeratorExtensions.cs" />
     <Compile Include="Executor\BasicExecutor.cs" />
+    <Compile Include="Executor\ForContext.cs" />
     <Compile Include="Executor\IExecutor.cs" />
     <Compile Include="Executor\IOperation.cs" />
     <Compile Include="Executor\Operations\ConditionalFalseJumpOperation.cs" />
@@ -129,9 +130,10 @@
     <Compile Include="Executor\Operations\ReadOperation.cs" />
     <Compile Include="Executor\Operations\UnconditionalJumpOperation.cs" />
     <Compile Include="Executor\Operations\WriteOperation.cs" />
+    <Compile Include="Executor\PrnComposer.cs" />
     <Compile Include="Executor\PrnExpressionExecutor.cs" />
     <Compile Include="Executor\VariableStore.cs" />
-    <Compile Include="ParserServiceModule.cs" />
+    <Compile Include="ParserModule.cs" />
     <Compile Include="StateMachine\ExitOperation.cs" />
     <Compile Include="StateMachine\IOperation.cs" />
     <Compile Include="IParser.cs" />

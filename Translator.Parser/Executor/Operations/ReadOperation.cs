@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Serilog;
 using Translator.Core;
 using Translator.LexerAnalyzer.Tokens;
@@ -19,7 +20,8 @@ namespace Parser.Executor.Operations
             }
             else
             {
-                Log.Error("There is not a correct number in the input stream");
+                executorContext.Logger.Error("There is not a correct number in the input stream: {0}", str);
+                throw new InvalidOperationException("Can't read a number from input stream");
             }
         }
 

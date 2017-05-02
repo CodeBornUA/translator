@@ -1,5 +1,10 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using Autofac;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
+using ILogger = Serilog.ILogger;
 
 namespace Translator.UI
 {

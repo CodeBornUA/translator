@@ -5,7 +5,7 @@ using Serilog;
 using Serilog.Events;
 using Translator.LexerAnalyzer.Tokens;
 
-namespace Parser
+namespace Parser.StateMachine
 {
     public class StateMachineParser : IParser
     {
@@ -22,18 +22,6 @@ namespace Parser
             _machine = new StackStateMachine(1, _transitions);
         }
 
-        public StateMachineParser(IObserver<LogEvent> logObserver)
-        {
-            _machine = new StackStateMachine(1, _transitions);
-
-            _logObserver = logObserver;
-            _logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .MinimumLevel.Verbose()
-                .WriteTo.Observers(ConfigureObservers)
-                .CreateLogger();
-        }
-
         public bool CheckSyntax(IEnumerable<Token> tokens)
         {
             _machine.State = 1;
@@ -45,12 +33,6 @@ namespace Parser
                 _machine.Fire(stream.Current);
 
             return !_machine.StateStack.Any();
-        }
-
-        private void ConfigureObservers(IObservable<LogEvent> observable)
-        {
-            if (_logObserver != null)
-                observable.Subscribe(_logObserver);
         }
 
         private void FillTransitionsTable()
@@ -124,7 +106,8 @@ namespace Parser
                 }
             });
 
-            _transitions.Add(StandartTransition(113, "New line is expected here", (x => x.Substring == "\r\n", 118)));
+            _transitions.Add(StandartTransition(113, ": is expected here", (x => x.Substring == ":", 199)));
+            _transitions.Add(StandartTransition(199, "New line is expected here", (x => x.Substring == "\r\n", 118)));
 
             expFirstState = FillExpression();
             _transitions.Add(SubMachineTransition(102, expFirstState, x => x.Substring == "=", 103,

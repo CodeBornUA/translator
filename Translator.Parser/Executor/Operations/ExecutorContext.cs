@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Serilog;
 using Translator.LexerAnalyzer.Tokens;
 
 namespace Parser.Executor.Operations
@@ -12,6 +13,9 @@ namespace Parser.Executor.Operations
         public Stack<Token> Stack { get; }
         public Stream InputStream { get; set; }
         public Stream OutputStream { get; set; }
+
+        public string WrittenString { get; set; }
+        public ILogger Logger { get; set; }
 
         public ExecutorContext(Stack<Token> stack, VariableStore variableStore, IList<Token> prn, int? nextPostition = null)
         {
